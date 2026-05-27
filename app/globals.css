@@ -1,26 +1,57 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #ffffff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(255, 0, 128, 0.18), transparent 30%),
+    radial-gradient(circle at 80% 20%, rgba(255, 80, 120, 0.1), transparent 25%),
+    radial-gradient(circle at bottom right, rgba(255, 120, 180, 0.12), transparent 35%),
+    #000000;
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes pinkglow {
+  0% {
+    transform: translateY(-50%) translateX(0px) scale(1);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: translateY(-50%) translateX(-40px) scale(1.08);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-50%) translateX(0px) scale(1);
+    opacity: 0.7;
+  }
+}
+
+.pink-aura {
+  position: fixed;
+  top: 50%;
+  right: -150px;
+  width: 900px;
+  height: 900px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 0, 128, 0.35) 0%,
+    rgba(255, 0, 128, 0.18) 25%,
+    rgba(255, 0, 128, 0.08) 45%,
+    transparent 70%
+  );
+  filter: blur(120px);
+  animation: pinkglow 10s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
 }
