@@ -1,8 +1,7 @@
 import QRCode from "qrcode";
 import fs from "fs";
 import path from "path";
-
-const SITE_URL = "https://pinkglow.mcfratmcommunity.com";
+const SITE_URL = "https://pinkglow-gin-experience-8tjh.vercel.app";
 const OUTPUT_DIR = path.join(process.cwd(), "public", "qrc");
 
 async function generateQRCodes() {

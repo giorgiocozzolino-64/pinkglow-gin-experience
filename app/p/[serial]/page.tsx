@@ -10,6 +10,7 @@ async function getBottle(serial: string) {
     .single();
 
   if (error || !data) return null;
+
   return data;
 }
 
@@ -25,12 +26,34 @@ async function getClaim(serial: string) {
   return data;
 }
 
+async function getCoupon(serial: string) {
+  const { data } = await supabase
+    .from("pinkglow_coupons")
+    .select("*")
+    .eq("bottle_serial", serial)
+    .limit(1)
+    .single();
+
+  return data;
+}
+
+async function getOwnershipHistory(serial: string) {
+  const { data } = await supabase
+    .from("pinkglow_ownership_history")
+    .select("*")
+    .eq("bottle_serial", serial)
+    .order("transferred_at", { ascending: false });
+
+  return data || [];
+}
+
 export default async function BottlePage({
   params,
 }: {
   params: Promise<{ serial: string }>;
 }) {
   const { serial } = await params;
+
   const bottle = await getBottle(serial);
 
   if (!bottle) {
@@ -38,6 +61,8 @@ export default async function BottlePage({
   }
 
   const claim = await getClaim(serial);
+  const coupon = await getCoupon(serial);
+  const ownershipHistory = await getOwnershipHistory(serial);
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -82,23 +107,88 @@ export default async function BottlePage({
 
         {claim && (
           <section className="mt-8 rounded-3xl border border-emerald-300/20 bg-emerald-950/20 p-8">
-            <h3 className="text-2xl font-semibold text-emerald-200">
-              Current Owner
+            <p className="text-sm uppercase tracking-[0.25em] text-emerald-300">
+              Digital Ownership Certificate
+            </p>
+
+            <h3 className="mt-3 text-3xl font-bold text-emerald-100">
+              Authentic & Registered
             </h3>
 
-            <p className="mt-4 text-3xl font-semibold">
-              {claim.owner_name}
+            <div className="mt-8 grid gap-6 md:grid-cols-2">
+              <div>
+                <p className="text-sm text-zinc-500">Registered Owner</p>
+                <p className="mt-2 text-2xl font-semibold text-white">
+                  {claim.owner_name}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-zinc-500">Email</p>
+                <p className="mt-2 text-lg text-zinc-300">
+                  {claim.owner_email}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-zinc-500">Bottle</p>
+                <p className="mt-2 text-lg text-zinc-300">{bottle.serial}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-zinc-500">Owner Number</p>
+                <p className="mt-2 text-lg text-zinc-300">
+                  #{bottle.bottle_number} of {bottle.total_in_series}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-zinc-500">Edition</p>
+                <p className="mt-2 text-lg text-zinc-300">
+                  {bottle.edition_name}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-zinc-500">Marketing Consent</p>
+                <p className="mt-2 text-lg text-zinc-300">
+                  {claim.marketing_consent ? "Yes" : "No"}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {coupon && (
+          <section className="mt-8 rounded-3xl border border-pink-500/20 bg-pink-500/10 p-8">
+            <p className="text-sm uppercase tracking-[0.25em] text-pink-300">
+              Owner Benefit
             </p>
 
-            <p className="mt-2 text-zinc-300">
-              {claim.owner_email}
+            <h3 className="mt-3 text-3xl font-bold text-white">
+              £10 Owner Credit
+            </h3>
+
+            <p className="mt-4 text-zinc-300">
+              Your registered owner credit is active and linked to this bottle.
             </p>
 
-            {claim.owner_message && (
-              <p className="mt-2 text-zinc-400">
-                {claim.owner_message}
+            <div className="mt-6 rounded-2xl border border-pink-500/20 bg-black/30 p-6">
+              <p className="text-sm text-zinc-400">Coupon Code</p>
+
+              <p className="mt-2 text-3xl font-mono text-pink-300">
+                {coupon.coupon_code}
               </p>
-            )}
+
+              <p className="mt-4 text-sm text-zinc-400">
+                Valid on the purchase of one Pinkglow Gin 70cl Limited Edition
+                Single Cask bottle.
+              </p>
+
+              <p className="mt-4 text-sm uppercase tracking-widest text-pink-300">
+                Status: {coupon.status}
+              </p>
+            </div>
           </section>
         )}
 
@@ -135,23 +225,65 @@ export default async function BottlePage({
 
             <div>
               <p className="text-sm text-zinc-500">Size</p>
-              <p className="mt-2 text-lg text-zinc-200">
-                {bottle.size_ml} ml
-              </p>
+              <p className="mt-2 text-lg text-zinc-200">{bottle.size_ml} ml</p>
             </div>
           </div>
         </section>
+
+        {ownershipHistory.length > 0 && (
+          <section className="mt-8 rounded-3xl border border-cyan-500/20 bg-cyan-950/10 p-8">
+            <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">
+              Provenance
+            </p>
+
+            <h3 className="mt-3 text-3xl font-bold text-white">
+              Ownership History
+            </h3>
+
+            <div className="mt-6 space-y-4">
+              {ownershipHistory.map((transfer) => (
+                <div
+                  key={transfer.id}
+                  className="rounded-2xl border border-cyan-500/10 bg-black/30 p-5"
+                >
+                  <p className="font-medium text-cyan-300">
+                    Ownership Transfer
+                  </p>
+
+                  <p className="mt-3 text-zinc-300">
+                    From: {transfer.previous_owner_name}
+                  </p>
+
+                  <p className="text-zinc-300">
+                    To: {transfer.new_owner_name}
+                  </p>
+
+                  {transfer.transfer_message && (
+                    <p className="mt-2 italic text-zinc-500">
+                      &quot;{transfer.transfer_message}&quot;
+                    </p>
+                  )}
+
+                  <p className="mt-3 text-sm text-zinc-500">
+                    {new Date(transfer.transferred_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {bottle.status === "unclaimed" ? (
           <ClaimForm serial={bottle.serial} />
         ) : (
           <div className="mt-8 rounded-3xl border border-emerald-300/20 bg-emerald-950/20 p-8">
             <h3 className="text-2xl font-semibold text-emerald-200">
-              Bottle Claimed
+              Digital Passport Active
             </h3>
 
             <p className="mt-2 text-zinc-300">
-              This Pinkglow Gin miniature has already been claimed.
+              This bottle has been authenticated and registered by its owner.
+              Ownership record secured.
             </p>
           </div>
         )}
