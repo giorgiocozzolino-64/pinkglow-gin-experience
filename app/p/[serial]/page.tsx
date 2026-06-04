@@ -4,6 +4,7 @@ import { supabase } from "@/app/lib/supabase";
 import ClaimForm from "@/app/components/ClaimForm";
 import TransferOwnershipForm from "@/app/components/TransferOwnershipForm";
 import OpenBottleForm from "@/app/components/OpenBottleForm";
+import Link from "next/link";
 
 async function getBottle(serial: string) {
   const { data, error } = await supabase
@@ -168,6 +169,12 @@ export default async function BottlePage({
                 This QR passport verifies authenticity, ownership, transfer
                 history and bottle opening status.
               </p>
+              <Link
+  href={`/certificate/${bottle.serial}`}
+  className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-pink-500 px-5 py-3 font-semibold text-black hover:bg-pink-400"
+>
+  Download Certificate
+</Link>
             </div>
           </aside>
         </section>
