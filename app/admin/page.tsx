@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage({
   searchParams,
 }: {
@@ -9,9 +11,22 @@ export default async function AdminPage({
   const params = await searchParams;
   const search = params?.search?.trim() || "";
 
-  const { count: totalBottles } = await supabase
+  const bottlesDebug = await supabase
+    .from("pinkglow_bottles")
+    .select("*")
+    .limit(3);
+
+  console.log("=================================");
+  console.log("DEBUG BOTTLES");
+  console.log(JSON.stringify(bottlesDebug, null, 2));
+  console.log("=================================");
+
+  const totalBottleQuery = await supabase
     .from("pinkglow_bottles")
     .select("*", { count: "exact", head: true });
+
+  console.log("TOTAL BOTTLES QUERY");
+  console.log(JSON.stringify(totalBottleQuery, null, 2));
 
   const { count: claimedBottles } = await supabase
     .from("pinkglow_claims")
@@ -35,7 +50,12 @@ export default async function AdminPage({
     bottlesQuery = bottlesQuery.ilike("serial", `%${search}%`);
   }
 
-  const { data: bottles } = await bottlesQuery;
+  const { data: bottles, error: bottlesError } = await bottlesQuery;
+
+  console.log("BOTTLES LIST QUERY");
+  console.log(JSON.stringify({ bottles, bottlesError }, null, 2));
+
+  const totalBottles = totalBottleQuery.count || 0;
 
   return (
     <main className="min-h-screen bg-black p-10 text-white">
@@ -46,7 +66,7 @@ export default async function AdminPage({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         <div className="rounded-2xl border border-pink-500 p-6">
           <p className="text-zinc-400">Total Bottles</p>
-          <h2 className="text-4xl font-bold">{totalBottles || 0}</h2>
+          <h2 className="text-4xl font-bold">{totalBottles}</h2>
         </div>
 
         <div className="rounded-2xl border border-emerald-500 p-6">
@@ -95,6 +115,12 @@ export default async function AdminPage({
           </form>
         </div>
 
+        {bottlesError && (
+          <div className="mb-6 rounded-xl border border-red-500 bg-red-950/40 p-4 text-red-200">
+            Supabase error: {bottlesError.message}
+          </div>
+        )}
+
         <div className="overflow-auto rounded-2xl border border-zinc-800">
           <table className="w-full text-left">
             <thead className="bg-zinc-900">
@@ -136,6 +162,14 @@ export default async function AdminPage({
                   </td>
                 </tr>
               ))}
+
+              {(!bottles || bottles.length === 0) && (
+                <tr>
+                  <td colSpan={5} className="p-6 text-center text-zinc-500">
+                    No bottles found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
