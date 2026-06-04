@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { supabase } from "@/app/lib/supabase";
 import ClaimForm from "@/app/components/ClaimForm";
+import TransferOwnershipForm from "@/app/components/TransferOwnershipForm";
+import OpenBottleForm from "@/app/components/OpenBottleForm";
 
 async function getBottle(serial: string) {
   const { data, error } = await supabase
@@ -10,7 +13,6 @@ async function getBottle(serial: string) {
     .single();
 
   if (error || !data) return null;
-
   return data;
 }
 
@@ -47,6 +49,20 @@ async function getOwnershipHistory(serial: string) {
   return data || [];
 }
 
+async function getBottleEvents(serial: string) {
+  const { data } = await supabase
+    .from("pinkglow_bottle_events")
+    .select("*")
+    .eq("bottle_serial", serial)
+    .order("created_at", { ascending: false });
+
+  return data || [];
+}
+
+function buildCouponCode(serial: string) {
+  return serial.replace("PG-FC26-", "PG10-FC26-");
+}
+
 export default async function BottlePage({
   params,
 }: {
@@ -63,56 +79,107 @@ export default async function BottlePage({
   const claim = await getClaim(serial);
   const coupon = await getCoupon(serial);
   const ownershipHistory = await getOwnershipHistory(serial);
+  const bottleEvents = await getBottleEvents(serial);
+
+  const couponCode = coupon?.coupon_code || buildCouponCode(bottle.serial);
+  const couponStatus = coupon?.status || "active";
+  const isOpened = bottle.status === "opened";
 
   return (
     <main className="min-h-screen bg-black text-white">
-      <div className="mx-auto max-w-5xl px-6 py-20">
-        <p className="tracking-[0.4em] text-pink-300">PINKGLOW GIN</p>
+      <div className="mx-auto max-w-6xl px-6 py-14">
+        <header className="flex items-center gap-8 border-b border-white/10 pb-10">
+          <Image
+            src="/images/otg-logo.png"
+            alt="Old Tom Gin Company"
+            width={130}
+            height={130}
+            priority
+            className="h-auto w-28"
+          />
 
-        <h1 className="mt-6 text-6xl font-bold">Bottle Identity</h1>
+          <div>
+            <p className="text-5xl font-bold tracking-[0.15em] text-pink-300 drop-shadow-[0_0_18px_rgba(244,114,182,0.55)]">
+              PINKGLOW GIN
+            </p>
 
-        <p className="mt-6 max-w-2xl text-xl text-zinc-300">
-          An experimental single cask gin inspired by the original Royal Navy
-          Pink Gin tradition.
-        </p>
+            <p className="mt-4 text-lg text-zinc-400">
+              Old Tom Gin Company in St Andrews Ltd • Established 1821
+            </p>
+          </div>
+        </header>
 
-        <section className="mt-12 rounded-3xl border border-pink-300/20 bg-white/5 p-8 backdrop-blur">
-          <p className="tracking-[0.3em] text-zinc-400">SERIAL NUMBER</p>
+        <section className="mt-12 grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+          <div>
+            <h1 className="text-7xl font-bold tracking-tight">
+              Bottle Identity
+            </h1>
 
-          <h2 className="mt-4 text-5xl font-bold">{bottle.serial}</h2>
+            <p className="mt-6 max-w-3xl text-2xl leading-relaxed text-zinc-300">
+              An experimental single cask gin inspired by the original Royal
+              Navy Pink Gin tradition.
+            </p>
 
-          <div className="mt-10 grid gap-8 md:grid-cols-3">
-            <div>
-              <p className="text-sm text-zinc-500">Cask</p>
-              <p className="mt-2 text-3xl text-pink-100">
-                {bottle.cask_code}
-              </p>
-            </div>
+            <div className="mt-10 rounded-3xl border border-pink-300/20 bg-white/5 p-8 backdrop-blur">
+              <p className="tracking-[0.3em] text-zinc-400">SERIAL NUMBER</p>
 
-            <div>
-              <p className="text-sm text-zinc-500">Bottle</p>
-              <p className="mt-2 text-3xl text-pink-100">
-                {bottle.bottle_number} / {bottle.total_in_series}
-              </p>
-            </div>
+              <h2 className="mt-4 text-6xl font-bold">{bottle.serial}</h2>
 
-            <div>
-              <p className="text-sm text-zinc-500">Status</p>
-              <p className="mt-2 text-3xl text-pink-100 capitalize">
-                {bottle.status}
-              </p>
+              <div className="mt-10 grid gap-8 md:grid-cols-3">
+                <div>
+                  <p className="text-sm text-zinc-500">Cask</p>
+                  <p className="mt-2 text-3xl text-pink-100">
+                    {bottle.cask_code}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-zinc-500">Bottle</p>
+                  <p className="mt-2 text-3xl text-pink-100">
+                    {bottle.bottle_number} / {bottle.total_in_series}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-zinc-500">Status</p>
+                  <p className="mt-2 text-3xl text-pink-100 capitalize">
+                    {bottle.status}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
+
+          <aside className="rounded-3xl border border-pink-400/20 bg-gradient-to-b from-pink-950/30 to-black p-8">
+            <Image
+              src="/images/otg-logo.png"
+              alt="OTG Seal"
+              width={260}
+              height={260}
+              className="mx-auto h-auto w-56 opacity-90"
+            />
+
+            <div className="mt-8 rounded-2xl border border-pink-400/20 bg-black/40 p-6">
+              <p className="text-sm uppercase tracking-[0.25em] text-pink-300">
+                Digital Passport
+              </p>
+
+              <p className="mt-4 text-zinc-300">
+                This QR passport verifies authenticity, ownership, transfer
+                history and bottle opening status.
+              </p>
+            </div>
+          </aside>
         </section>
 
         {claim && (
-          <section className="mt-8 rounded-3xl border border-emerald-300/20 bg-emerald-950/20 p-8">
+          <section className="mt-10 rounded-3xl border border-emerald-300/20 bg-emerald-950/20 p-8">
             <p className="text-sm uppercase tracking-[0.25em] text-emerald-300">
               Digital Ownership Certificate
             </p>
 
-            <h3 className="mt-3 text-3xl font-bold text-emerald-100">
-              Authentic & Registered
+            <h3 className="mt-3 text-4xl font-bold text-emerald-100">
+              {isOpened ? "Opened & Archived" : "Authentic & Registered"}
             </h3>
 
             <div className="mt-8 grid gap-6 md:grid-cols-2">
@@ -159,7 +226,7 @@ export default async function BottlePage({
           </section>
         )}
 
-        {coupon && (
+        {claim && (
           <section className="mt-8 rounded-3xl border border-pink-500/20 bg-pink-500/10 p-8">
             <p className="text-sm uppercase tracking-[0.25em] text-pink-300">
               Owner Benefit
@@ -169,15 +236,11 @@ export default async function BottlePage({
               £10 Owner Credit
             </h3>
 
-            <p className="mt-4 text-zinc-300">
-              Your registered owner credit is active and linked to this bottle.
-            </p>
-
             <div className="mt-6 rounded-2xl border border-pink-500/20 bg-black/30 p-6">
               <p className="text-sm text-zinc-400">Coupon Code</p>
 
               <p className="mt-2 text-3xl font-mono text-pink-300">
-                {coupon.coupon_code}
+                {couponCode}
               </p>
 
               <p className="mt-4 text-sm text-zinc-400">
@@ -186,14 +249,14 @@ export default async function BottlePage({
               </p>
 
               <p className="mt-4 text-sm uppercase tracking-widest text-pink-300">
-                Status: {coupon.status}
+                Status: {couponStatus}
               </p>
             </div>
           </section>
         )}
 
         <section className="mt-8 rounded-3xl border border-pink-300/20 bg-white/5 p-8 backdrop-blur">
-          <h3 className="text-2xl font-semibold">The Origin</h3>
+          <h3 className="text-3xl font-semibold">The Origin</h3>
 
           <p className="mt-6 leading-9 text-zinc-300">
             Pinkglow Gin began as a real experiment. Three casks that had
@@ -206,7 +269,7 @@ export default async function BottlePage({
         </section>
 
         <section className="mt-8 rounded-3xl border border-pink-300/20 bg-white/5 p-8 backdrop-blur">
-          <h3 className="text-2xl font-semibold">Event Edition</h3>
+          <h3 className="text-3xl font-semibold">Event Edition</h3>
 
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             <div>
@@ -251,7 +314,7 @@ export default async function BottlePage({
                   </p>
 
                   <p className="mt-3 text-zinc-300">
-                    From: {transfer.previous_owner_name}
+                    From: {transfer.previous_owner_name || "Producer"}
                   </p>
 
                   <p className="text-zinc-300">
@@ -273,19 +336,80 @@ export default async function BottlePage({
           </section>
         )}
 
-        {bottle.status === "unclaimed" ? (
-          <ClaimForm serial={bottle.serial} />
-        ) : (
-          <div className="mt-8 rounded-3xl border border-emerald-300/20 bg-emerald-950/20 p-8">
-            <h3 className="text-2xl font-semibold text-emerald-200">
-              Digital Passport Active
+        {bottleEvents.length > 0 && (
+          <section className="mt-8 rounded-3xl border border-orange-400/20 bg-orange-950/10 p-8">
+            <p className="text-sm uppercase tracking-[0.25em] text-orange-300">
+              Bottle Events
+            </p>
+
+            <h3 className="mt-3 text-3xl font-bold text-white">
+              Event Timeline
             </h3>
 
-            <p className="mt-2 text-zinc-300">
-              This bottle has been authenticated and registered by its owner.
-              Ownership record secured.
+            <div className="mt-6 space-y-4">
+              {bottleEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="rounded-2xl border border-orange-400/10 bg-black/30 p-5"
+                >
+                  <p className="font-medium capitalize text-orange-300">
+                    {event.event_type}
+                  </p>
+
+                  {event.owner_name && (
+                    <p className="mt-2 text-zinc-300">
+                      Opened by: {event.owner_name}
+                    </p>
+                  )}
+
+                  {event.notes && (
+                    <p className="mt-2 text-zinc-400">{event.notes}</p>
+                  )}
+
+                  <p className="mt-3 text-sm text-zinc-500">
+                    {new Date(event.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {bottle.status === "unclaimed" ? (
+          <ClaimForm serial={bottle.serial} />
+        ) : isOpened ? (
+          <div className="mt-8 rounded-3xl border border-orange-400/20 bg-orange-950/20 p-8">
+            <p className="text-sm uppercase tracking-[0.25em] text-orange-300">
+              Digital Passport Archived
+            </p>
+
+            <h3 className="mt-3 text-3xl font-bold text-white">
+              Bottle Opened
+            </h3>
+
+            <p className="mt-4 text-zinc-300">
+              This bottle has been opened. Ownership transfer is permanently
+              locked. The digital passport remains available as a provenance
+              record.
             </p>
           </div>
+        ) : (
+          <>
+            <div className="mt-8 rounded-3xl border border-emerald-300/20 bg-emerald-950/20 p-8">
+              <h3 className="text-2xl font-semibold text-emerald-200">
+                Digital Passport Active
+              </h3>
+
+              <p className="mt-2 text-zinc-300">
+                This bottle has been authenticated and registered by its owner.
+                Ownership record secured.
+              </p>
+            </div>
+
+            <TransferOwnershipForm serial={bottle.serial} />
+
+            <OpenBottleForm serial={bottle.serial} />
+          </>
         )}
       </div>
     </main>

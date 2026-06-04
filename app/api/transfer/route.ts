@@ -4,13 +4,58 @@ import { supabase } from "@/app/lib/supabase";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
     const { serial, newOwnerName, newOwnerEmail, transferMessage } = body;
 
     if (!serial || !newOwnerName || !newOwnerEmail) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
+      );
+    }
+
+    const { data: bottle, error: bottleError } = await supabase
+      .from("pinkglow_bottles")
+      .select("*")
+      .eq("serial", serial)
+      .single();
+
+    if (bottleError || !bottle) {
+      return NextResponse.json(
+        { error: "Bottle not found" },
+        { status: 404 }
+      );
+    }
+
+    if (bottle.status === "opened" || bottle.status === "consumed") {
+      return NextResponse.json(
+        {
+          error:
+            "Ownership cannot be transferred after the bottle has been opened.",
+        },
+        { status: 409 }
+      );
+    }
+
+    const { data: openedEvents, error: openedError } = await supabase
+      .from("pinkglow_bottle_events")
+      .select("id")
+      .eq("bottle_serial", serial)
+      .eq("event_type", "opened");
+
+    if (openedError) {
+      return NextResponse.json(
+        { error: openedError.message },
+        { status: 500 }
+      );
+    }
+
+    if (openedEvents && openedEvents.length > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Ownership cannot be transferred after the bottle has been opened.",
+        },
+        { status: 409 }
       );
     }
 
@@ -47,7 +92,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { error: updateClaimError } = await supabase
+    const { error: updateError } = await supabase
       .from("pinkglow_claims")
       .update({
         owner_name: newOwnerName,
@@ -56,9 +101,9 @@ export async function POST(req: Request) {
       })
       .eq("id", currentClaim.id);
 
-    if (updateClaimError) {
+    if (updateError) {
       return NextResponse.json(
-        { error: updateClaimError.message },
+        { error: updateError.message },
         { status: 500 }
       );
     }
