@@ -318,12 +318,6 @@ export default async function BottlePage({
   </p>
 )}
 
-{event.notes && (
-  <p className="mt-2 text-zinc-400">{event.notes}</p>
-)}
-                  
-                    <p className="mt-2 text-zinc-300">
-                  )}
 
                   <p className="mt-3 text-sm text-zinc-500">
                     {new Date(event.created_at).toLocaleDateString()}
