@@ -12,7 +12,12 @@ async function getBottle(serial: string) {
     .eq("serial", serial)
     .single();
 
+  console.log("SERIAL:", serial);
+  console.log("SUPABASE DATA:", data);
+  console.log("SUPABASE ERROR:", error);
+
   if (error || !data) return null;
+
   return data;
 }
 
