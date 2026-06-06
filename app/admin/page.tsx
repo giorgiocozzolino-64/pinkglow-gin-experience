@@ -13,14 +13,16 @@ async function getDashboardStats() {
     .from("pinkglow_claims")
     .select("*", { count: "exact", head: true });
 
-  const { count: totalContacts } = await supabase
-    .from("pinkglow_contacts")
-    .select("*", { count: "exact", head: true });
+ const { data: contacts } = await supabase
+  .from("pinkglow_contacts")
+  .select("*");
 
-  const { count: consentContacts } = await supabase
-    .from("pinkglow_contacts")
-    .select("*", { count: "exact", head: true })
-    .eq("marketing_consent", true);
+const totalContacts = contacts?.length || 0;
+
+const consentContacts =
+  contacts?.filter(
+    (c) => c.marketing_consent === true
+  ).length || 0;
 
   const events = timeline || [];
 
