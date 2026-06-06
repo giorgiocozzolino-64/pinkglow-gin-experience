@@ -102,7 +102,6 @@ export default function ElyasAdminHome() {
   priority
   className="h-auto w-full max-w-5xl"
  />
-  />
 </div>
 <div className="mb-10 flex flex-wrap gap-4">
   <span className="rounded-full bg-emerald-500/20 px-4 py-2 text-sm text-emerald-300">
