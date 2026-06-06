@@ -1,5 +1,6 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+
 const projects = [
   {
     name: "Pinkglow Gin",
@@ -39,26 +40,10 @@ const projects = [
 ];
 
 const metrics = [
-  {
-    title: "Certified Projects",
-    value: "5",
-    subtitle: "Active ecosystem",
-  },
-  {
-    title: "Certified Assets",
-    value: "310",
-    subtitle: "Bottles & assets",
-  },
-  {
-    title: "Registered Owners",
-    value: "8",
-    subtitle: "Verified owners",
-  },
-  {
-    title: "ERP Integrations",
-    value: "1",
-    subtitle: "Oracle NetSuite",
-  },
+  { title: "Certified Projects", value: "5", subtitle: "Active ecosystem" },
+  { title: "Certified Assets", value: "310", subtitle: "Bottles & assets" },
+  { title: "Registered Owners", value: "8", subtitle: "Verified owners" },
+  { title: "ERP Integrations", value: "1", subtitle: "Oracle NetSuite" },
   {
     title: "Certification Status",
     value: "ACTIVE",
@@ -67,56 +52,41 @@ const metrics = [
 ];
 
 const systems = [
-  {
-    name: "Oracle NetSuite",
-    status: "CONNECTED",
-  },
-  {
-    name: "SAP",
-    status: "PLANNED",
-  },
-  {
-    name: "Zucchetti",
-    status: "PLANNED",
-  },
-  {
-    name: "Microsoft Dynamics",
-    status: "PLANNED",
-  },
-  {
-    name: "Shopify",
-    status: "PLANNED",
-  },
+  { name: "Oracle NetSuite", status: "CONNECTED" },
+  { name: "SAP", status: "PLANNED" },
+  { name: "Zucchetti", status: "PLANNED" },
+  { name: "Microsoft Dynamics", status: "PLANNED" },
+  { name: "Shopify", status: "PLANNED" },
 ];
 
 export default function ElyasAdminHome() {
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8">
- <div className="mb-8 rounded-3xl bg-white p-8">
-  <Image
-    src="/images/elyas-logo.png"
-    alt="ELYAS AI"
-    width={900}
-    height={220}
-    priority
-    className="h-auto w-full max-w-5xl"
-  />
-</div>
-<div className="mb-10 flex flex-wrap gap-4">
-  <span className="rounded-full bg-emerald-500/20 px-4 py-2 text-sm text-emerald-300">
-    CERTIFICATION AUTHORITY ACTIVE
-  </span>
+        <div className="mb-8 rounded-3xl bg-white p-8">
+          <Image
+            src="/images/elyas-logo.png"
+            alt="ELYAS AI"
+            width={900}
+            height={220}
+            priority
+            className="h-auto w-full max-w-5xl"
+          />
+        </div>
 
-  <span className="rounded-full bg-pink-500/20 px-4 py-2 text-sm text-pink-300">
-    ORACLE NETSUITE CONNECTED
-  </span>
+        <div className="mb-10 flex flex-wrap gap-4">
+          <span className="rounded-full bg-emerald-500/20 px-4 py-2 text-sm text-emerald-300">
+            CERTIFICATION AUTHORITY ACTIVE
+          </span>
 
-  <span className="rounded-full bg-blue-500/20 px-4 py-2 text-sm text-blue-300">
-    DIGITAL PASSPORT PLATFORM
-  </span>
-</div>
+          <span className="rounded-full bg-pink-500/20 px-4 py-2 text-sm text-pink-300">
+            ORACLE NETSUITE CONNECTED
+          </span>
+
+          <span className="rounded-full bg-blue-500/20 px-4 py-2 text-sm text-blue-300">
+            DIGITAL PASSPORT PLATFORM
+          </span>
+        </div>
 
         <h1 className="mt-5 text-6xl font-bold">
           Certified Projects Dashboard
@@ -235,28 +205,31 @@ export default function ElyasAdminHome() {
         </section>
 
         <section className="mt-14 rounded-3xl border border-pink-300/20 bg-white/5 p-8">
-  <p className="text-xs uppercase tracking-[0.35em] text-zinc-500">
-    The ELYAS Journey
-  </p>
+          <p className="text-xs uppercase tracking-[0.35em] text-zinc-500">
+            The ELYAS Journey
+          </p>
 
-  <div className="mt-6 grid gap-4 md:grid-cols-5">
-    {[
-      "The Key",
-      "Meet Elyas",
-      "Discover The Story",
-      "Ownership",
-      "Legacy",
-    ].map((step) => (
-      <div
-        key={step}
-        className="rounded-2xl bg-black/40 p-4 text-center text-sm text-pink-300"
-      >
-        {step}
+          <div className="mt-6 grid gap-4 md:grid-cols-5">
+            {[
+              "The Key",
+              "Meet Elyas",
+              "Discover The Story",
+              "Ownership",
+              "Legacy",
+            ].map((step) => (
+              <div
+                key={step}
+                className="rounded-2xl bg-black/40 p-4 text-center text-sm text-pink-300"
+              >
+                {step}
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
-    ))}
-  </div>
-</section>
-
+    </main>
+  );
+}
 
 function MetricCard({
   title,
