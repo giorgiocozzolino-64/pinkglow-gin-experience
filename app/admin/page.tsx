@@ -247,7 +247,7 @@ export default function ElyasAdminHome() {
               "Ownership",
               "Legacy",
             ].map((step) => (
-                        </div>
+           </div>
         </section>
       </div>
     </main>
