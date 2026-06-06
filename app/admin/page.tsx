@@ -63,19 +63,20 @@ export default function ElyasAdminHome() {
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 rounded-3xl bg-white p-8">
-          <div className="mb-10 flex justify-center">
-  <Image
-    src="/images/elyas-logo.png"
-    alt="ELYAS AI"
-    width={420}
-    height={100}
-    priority
-    className="rounded-xl"
-  />
-</div>
+        <div className="mb-10 flex justify-center">
+          <div className="rounded-2xl bg-white px-6 py-4">
+            <Image
+              src="/images/elyas-logo.png"
+              alt="ELYAS AI"
+              width={420}
+              height={100}
+              priority
+              className="h-auto w-auto"
+            />
+          </div>
+        </div>
 
-        <div className="mb-10 flex flex-wrap gap-4">
+        <div className="mb-10 flex flex-wrap justify-center gap-4">
           <span className="rounded-full bg-emerald-500/20 px-4 py-2 text-sm text-emerald-300">
             CERTIFICATION AUTHORITY ACTIVE
           </span>
@@ -231,7 +232,6 @@ export default function ElyasAdminHome() {
     </main>
   );
 }
-
 
 function MetricCard({
   title,
