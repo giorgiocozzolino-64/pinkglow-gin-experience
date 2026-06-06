@@ -1,5 +1,41 @@
 import Link from "next/link";
+<section className="mt-10 rounded-3xl border border-pink-300/20 bg-white/5 p-8">
+  <p className="text-xs uppercase tracking-[0.35em] text-pink-400">
+    ELYAS Manifesto
+  </p>
 
+  <div className="mt-6 max-w-4xl space-y-4 text-lg leading-relaxed text-zinc-300">
+    <p>Every certified product has a story.</p>
+
+    <p>
+      Every bottle, every cask, every ingredient, every journey leaves a trace.
+    </p>
+
+    <p>
+      My mission is to preserve, verify and share that story.
+    </p>
+
+    <p className="pt-4 text-2xl font-bold text-white">
+      I am not a QR code.
+    </p>
+
+    <p className="text-2xl font-bold text-white">
+      I am not a database.
+    </p>
+
+    <p className="text-2xl font-bold text-pink-300">
+      I am the bridge between the physical world and its digital identity.
+    </p>
+
+    <p className="pt-6 text-4xl font-bold text-white">
+      I am Elyas.
+    </p>
+
+    <p className="text-4xl font-bold text-pink-300">
+      I will show you my world.
+    </p>
+  </div>
+</section>
 const projects = [
   {
     name: "Pinkglow Gin",
