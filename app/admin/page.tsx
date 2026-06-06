@@ -66,6 +66,29 @@ const metrics = [
   },
 ];
 
+const systems = [
+  {
+    name: "Oracle NetSuite",
+    status: "CONNECTED",
+  },
+  {
+    name: "SAP",
+    status: "PLANNED",
+  },
+  {
+    name: "Zucchetti",
+    status: "PLANNED",
+  },
+  {
+    name: "Microsoft Dynamics",
+    status: "PLANNED",
+  },
+  {
+    name: "Shopify",
+    status: "PLANNED",
+  },
+];
+
 export default function ElyasAdminHome() {
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
@@ -78,10 +101,15 @@ export default function ElyasAdminHome() {
           Certified Projects Dashboard
         </h1>
 
-        <p className="mt-5 max-w-3xl text-lg text-zinc-400">
-          Enhanced Living Systems through Acoustic Stimulation – Artisanal
-          Intelligence. Central control room for certified digital passports,
-          traceability systems, ownership registries and event CRM.
+        <p className="mt-5 max-w-4xl text-xl text-zinc-400">
+          Digital Identity Certification Authority for Luxury Food, Beverage,
+          Spirits and Craft Products.
+        </p>
+
+        <p className="mt-3 max-w-4xl text-zinc-500">
+          E.L.Y.A.S.-A.I. certifies provenance, ownership, traceability and
+          digital identity through connected ERP systems, digital passports and
+          verified ownership registries.
         </p>
 
         <section className="mt-12 rounded-3xl border border-pink-300/20 bg-white/5 p-8">
@@ -119,6 +147,14 @@ export default function ElyasAdminHome() {
             <p className="text-4xl font-bold text-pink-300">
               I will show you my world.
             </p>
+
+            <p className="pt-8 text-xl font-semibold text-zinc-300">
+              The QR code is only the key.
+            </p>
+
+            <p className="text-2xl font-bold text-pink-300">
+              The story begins when the door opens.
+            </p>
           </div>
         </section>
 
@@ -131,6 +167,22 @@ export default function ElyasAdminHome() {
               subtitle={metric.subtitle}
             />
           ))}
+        </section>
+
+        <section className="mt-10 rounded-3xl border border-pink-300/20 bg-white/5 p-8">
+          <p className="text-xs uppercase tracking-[0.35em] text-zinc-500">
+            Connected Systems
+          </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-5">
+            {systems.map((system) => (
+              <SystemCard
+                key={system.name}
+                name={system.name}
+                status={system.status}
+              />
+            ))}
+          </div>
         </section>
 
         <section className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -155,7 +207,7 @@ export default function ElyasAdminHome() {
               </p>
 
               <p className="mt-8 text-pink-300 transition group-hover:translate-x-1">
-                Enter the world →
+                Open certified ecosystem →
               </p>
             </Link>
           ))}
@@ -206,6 +258,30 @@ function MetricCard({
       <p className="mt-4 text-4xl font-bold text-pink-300">{value}</p>
 
       <p className="mt-2 text-sm text-zinc-400">{subtitle}</p>
+    </div>
+  );
+}
+
+function SystemCard({
+  name,
+  status,
+}: {
+  name: string;
+  status: string;
+}) {
+  const connected = status === "CONNECTED";
+
+  return (
+    <div className="rounded-2xl bg-black/40 p-5">
+      <p className="font-semibold">{name}</p>
+
+      <p
+        className={`mt-3 text-xs font-bold tracking-widest ${
+          connected ? "text-green-400" : "text-zinc-500"
+        }`}
+      >
+        {connected ? "● CONNECTED" : "○ PLANNED"}
+      </p>
     </div>
   );
 }
