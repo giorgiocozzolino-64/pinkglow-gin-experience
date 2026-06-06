@@ -64,15 +64,16 @@ export default function ElyasAdminHome() {
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 rounded-3xl bg-white p-8">
-          <Image
-            src="/images/elyas-logo.png"
-            alt="ELYAS AI"
-            width={900}
-            height={220}
-            priority
-            className="h-auto w-full max-w-5xl"
-          />
-        </div>
+          <div className="mb-10 flex justify-center">
+  <Image
+    src="/images/elyas-logo.png"
+    alt="ELYAS AI"
+    width={420}
+    height={100}
+    priority
+    className="rounded-xl"
+  />
+</div>
 
         <div className="mb-10 flex flex-wrap gap-4">
           <span className="rounded-full bg-emerald-500/20 px-4 py-2 text-sm text-emerald-300">
