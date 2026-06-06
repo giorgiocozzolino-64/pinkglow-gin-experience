@@ -16,7 +16,8 @@ async function getDashboardStats() {
  const { data: contacts } = await supabase
   .from("pinkglow_contacts")
   .select("*");
-
+console.log("CONTACTS:", contacts);
+console.log("CONTACTS LENGTH:", contacts?.length);
 const totalContacts = contacts?.length || 0;
 
 const consentContacts =
