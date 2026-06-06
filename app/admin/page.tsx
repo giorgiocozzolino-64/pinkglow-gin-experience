@@ -1,179 +1,179 @@
-import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 
-export const dynamic = "force-dynamic";
+async function getDashboardStats() {
+  const { data } = await supabase
+    .from("pinkglow_timeline")
+    .select("*");
 
-export default async function AdminPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ search?: string }>;
-}) {
-  const params = await searchParams;
-  const search = params?.search?.trim() || "";
+  const events = data || [];
 
-  const bottlesDebug = await supabase
-    .from("pinkglow_bottles")
+  const pageViews = events.filter((e) => e.event_type === "page_view");
+  const claims = events.filter((e) => e.event_type === "claim");
+  const opened = events.filter((e) => e.event_type === "opened");
+  const transfers = events.filter((e) => e.event_type === "transfer");
+
+  const uniqueBottles = new Set(pageViews.map((e) => e.serial)).size;
+
+  return {
+    pageViews: pageViews.length,
+    uniqueBottles,
+    claims: claims.length,
+    opened: opened.length,
+    transfers: transfers.length,
+    conversionRate:
+      uniqueBottles > 0 ? ((claims.length / uniqueBottles) * 100).toFixed(1) : "0",
+  };
+}
+
+async function getTopBottles() {
+  const { data } = await supabase
+    .from("pinkglow_page_views")
+    .select("serial");
+
+  const counts: Record<string, number> = {};
+
+  (data || []).forEach((row) => {
+    counts[row.serial] = (counts[row.serial] || 0) + 1;
+  });
+
+  return Object.entries(counts)
+    .map(([serial, views]) => ({ serial, views }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 10);
+}
+
+async function getLatestActivity() {
+  const { data } = await supabase
+    .from("pinkglow_timeline")
     .select("*")
-    .limit(3);
+    .order("event_time", { ascending: false })
+    .limit(20);
 
-  console.log("=================================");
-  console.log("DEBUG BOTTLES");
-  console.log(JSON.stringify(bottlesDebug, null, 2));
-  console.log("=================================");
+  return data || [];
+}
 
-  const totalBottleQuery = await supabase
-    .from("pinkglow_bottles")
-    .select("*", { count: "exact", head: true });
-
-  console.log("TOTAL BOTTLES QUERY");
-  console.log(JSON.stringify(totalBottleQuery, null, 2));
-
-  const { count: claimedBottles } = await supabase
-    .from("pinkglow_claims")
-    .select("*", { count: "exact", head: true });
-
-  const { count: transfers } = await supabase
-    .from("pinkglow_ownership_history")
-    .select("*", { count: "exact", head: true });
-
-  const { count: opened } = await supabase
-    .from("pinkglow_bottle_events")
-    .select("*", { count: "exact", head: true })
-    .eq("event_type", "opened");
-
-  let bottlesQuery = supabase
-    .from("pinkglow_bottles")
-    .select("*")
-    .order("serial");
-
-  if (search) {
-    bottlesQuery = bottlesQuery.ilike("serial", `%${search}%`);
-  }
-
-  const { data: bottles, error: bottlesError } = await bottlesQuery;
-
-  console.log("BOTTLES LIST QUERY");
-  console.log(JSON.stringify({ bottles, bottlesError }, null, 2));
-
-  const totalBottles = totalBottleQuery.count || 0;
+export default async function AdminPage() {
+  const stats = await getDashboardStats();
+  const topBottles = await getTopBottles();
+  const latestActivity = await getLatestActivity();
 
   return (
-    <main className="min-h-screen bg-black p-10 text-white">
-      <h1 className="mb-10 text-4xl font-bold">
-        Pinkglow Admin Dashboard
-      </h1>
+    <main className="min-h-screen bg-black px-6 py-10 text-white">
+      <div className="mx-auto max-w-7xl">
+        <p className="tracking-[0.4em] text-pink-400">
+          PINKGLOW DIGITAL PASSPORT
+        </p>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-        <div className="rounded-2xl border border-pink-500 p-6">
-          <p className="text-zinc-400">Total Bottles</p>
-          <h2 className="text-4xl font-bold">{totalBottles}</h2>
-        </div>
+        <h1 className="mt-4 text-5xl font-bold">
+          Admin Dashboard
+        </h1>
 
-        <div className="rounded-2xl border border-emerald-500 p-6">
-          <p className="text-zinc-400">Claimed</p>
-          <h2 className="text-4xl font-bold">{claimedBottles || 0}</h2>
-        </div>
+        <p className="mt-3 text-zinc-400">
+          Live overview of QR scans, bottle claims, openings and transfers.
+        </p>
 
-        <div className="rounded-2xl border border-blue-500 p-6">
-          <p className="text-zinc-400">Transfers</p>
-          <h2 className="text-4xl font-bold">{transfers || 0}</h2>
-        </div>
+        <section className="mt-10 grid gap-5 md:grid-cols-3 lg:grid-cols-6">
+          <StatCard title="Page Views" value={stats.pageViews} />
+          <StatCard title="Bottles Scanned" value={stats.uniqueBottles} />
+          <StatCard title="Claims" value={stats.claims} />
+          <StatCard title="Opened" value={stats.opened} />
+          <StatCard title="Transfers" value={stats.transfers} />
+          <StatCard title="Conversion" value={`${stats.conversionRate}%`} />
+        </section>
 
-        <div className="rounded-2xl border border-orange-500 p-6">
-          <p className="text-zinc-400">Opened</p>
-          <h2 className="text-4xl font-bold">{opened || 0}</h2>
-        </div>
-      </div>
+        <section className="mt-12 grid gap-8 lg:grid-cols-2">
+          <div className="rounded-3xl border border-pink-300/20 bg-white/5 p-6">
+            <h2 className="text-2xl font-bold text-pink-300">
+              Top Scanned Bottles
+            </h2>
 
-      <div className="mt-12">
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <h2 className="text-2xl font-bold">Bottle Registry</h2>
-
-          <form action="/admin" className="flex gap-3">
-            <input
-              name="search"
-              defaultValue={search}
-              placeholder="Search serial..."
-              className="rounded-xl border border-zinc-700 bg-black px-4 py-3 text-white outline-none focus:border-pink-400"
-            />
-
-            <button
-              type="submit"
-              className="rounded-xl bg-pink-500 px-5 py-3 font-semibold text-black hover:bg-pink-400"
-            >
-              Search
-            </button>
-
-            {search && (
-              <Link
-                href="/admin"
-                className="rounded-xl border border-zinc-700 px-5 py-3 text-zinc-300 hover:border-pink-400"
-              >
-                Reset
-              </Link>
-            )}
-          </form>
-        </div>
-
-        {bottlesError && (
-          <div className="mb-6 rounded-xl border border-red-500 bg-red-950/40 p-4 text-red-200">
-            Supabase error: {bottlesError.message}
-          </div>
-        )}
-
-        <div className="overflow-auto rounded-2xl border border-zinc-800">
-          <table className="w-full text-left">
-            <thead className="bg-zinc-900">
-              <tr>
-                <th className="p-4">Serial</th>
-                <th className="p-4">Bottle</th>
-                <th className="p-4">Cask</th>
-                <th className="p-4">Edition</th>
-                <th className="p-4">Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {bottles?.map((bottle) => (
-                <tr key={bottle.serial} className="border-t border-zinc-800">
-                  <td className="p-4 font-mono">
-                    <Link
-                      href={`/p/${bottle.serial}`}
-                      className="text-pink-300 hover:text-pink-200 hover:underline"
-                    >
-                      {bottle.serial}
-                    </Link>
-                  </td>
-
-                  <td className="p-4">
-                    #{bottle.bottle_number} / {bottle.total_in_series}
-                  </td>
-
-                  <td className="p-4">{bottle.cask_code}</td>
-
-                  <td className="p-4 text-zinc-300">
-                    {bottle.edition_name}
-                  </td>
-
-                  <td className="p-4 capitalize">
-                    <span className="rounded-full border border-zinc-700 px-3 py-1 text-sm">
-                      {bottle.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-
-              {(!bottles || bottles.length === 0) && (
-                <tr>
-                  <td colSpan={5} className="p-6 text-center text-zinc-500">
-                    No bottles found.
-                  </td>
-                </tr>
+            <div className="mt-6 space-y-3">
+              {topBottles.length === 0 && (
+                <p className="text-zinc-400">No scans recorded yet.</p>
               )}
-            </tbody>
-          </table>
-        </div>
+
+              {topBottles.map((bottle) => (
+                <div
+                  key={bottle.serial}
+                  className="flex items-center justify-between rounded-2xl bg-black/40 p-4"
+                >
+                  <span className="font-mono text-sm">{bottle.serial}</span>
+                  <span className="rounded-full bg-pink-500/20 px-3 py-1 text-sm text-pink-300">
+                    {bottle.views} views
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-pink-300/20 bg-white/5 p-6">
+            <h2 className="text-2xl font-bold text-pink-300">
+              Latest Activity
+            </h2>
+
+            <div className="mt-6 space-y-3">
+              {latestActivity.map((event: any, index) => (
+                <div
+                  key={`${event.serial}-${event.event_time}-${index}`}
+                  className="rounded-2xl bg-black/40 p-4"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="font-mono text-sm text-white">
+                      {event.serial}
+                    </span>
+
+                    <span className="rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-wider text-pink-300">
+                      {event.event_type}
+                    </span>
+                  </div>
+
+                  <p className="mt-2 text-sm text-zinc-400">
+                    {new Date(event.event_time).toLocaleString()}
+                  </p>
+
+                  {event.owner_name && (
+                    <p className="mt-2 text-sm">
+                      Owner:{" "}
+                      <span className="text-pink-300">
+                        {event.owner_name}
+                      </span>
+                    </p>
+                  )}
+
+                  {event.owner_email && (
+                    <p className="text-sm text-zinc-400">
+                      {event.owner_email}
+                    </p>
+                  )}
+
+                  {event.notes && (
+                    <p className="mt-2 text-sm text-zinc-300">
+                      {event.notes}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       </div>
     </main>
+  );
+}
+
+function StatCard({
+  title,
+  value,
+}: {
+  title: string;
+  value: string | number;
+}) {
+  return (
+    <div className="rounded-3xl border border-pink-300/20 bg-white/5 p-5">
+      <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
+        {title}
+      </p>
+      <p className="mt-3 text-3xl font-bold text-pink-300">{value}</p>
+    </div>
   );
 }
