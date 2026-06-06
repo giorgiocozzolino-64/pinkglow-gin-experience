@@ -3,7 +3,7 @@ import { supabase } from "@/app/lib/supabase";
 import ClaimForm from "@/app/components/ClaimForm";
 import TransferOwnershipForm from "@/app/components/TransferOwnershipForm";
 import OpenBottleForm from "@/app/components/OpenBottleForm";
-
+import TrackPinkglowView from "@/app/components/TrackPinkglowView";
 async function getBottle(serial: string) {
   const { data, error } = await supabase
     .from("pinkglow_bottles")
@@ -86,6 +86,7 @@ export default async function BottlePage({
 
   return (
     <main className="min-h-screen bg-black text-white">
+      <TrackPinkglowView serial={bottle.serial} />
       <div className="mx-auto max-w-5xl px-6 py-20">
         <p className="tracking-[0.4em] text-pink-300">PINKGLOW GIN</p>
 
