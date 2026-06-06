@@ -95,12 +95,13 @@ export default function ElyasAdminHome() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-8">
   <Image
-    src="/elyas-logo.png"
-    alt="ELYAS AI"
-    width={700}
-    height={180}
-    priority
-    className="h-auto w-full max-w-3xl"
+  src="/images/elyas-logo.png"
+  alt="ELYAS AI"
+  width={700}
+  height={180}
+  priority
+  className="h-auto w-full max-w-5xl"
+ />
   />
 </div>
 <div className="mb-10 flex flex-wrap gap-4">
