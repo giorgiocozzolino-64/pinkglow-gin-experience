@@ -153,7 +153,7 @@ E.L.Y.A.S.-A.I. </p>
     </section>
   </div>
 </main>
-```
+```tsx
 
 );
 }
