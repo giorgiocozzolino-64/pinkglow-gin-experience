@@ -235,24 +235,28 @@ export default function ElyasAdminHome() {
         </section>
 
         <section className="mt-14 rounded-3xl border border-pink-300/20 bg-white/5 p-8">
-          <p className="text-xs uppercase tracking-[0.35em] text-zinc-500">
-            The ELYAS Journey
-          </p>
+  <p className="text-xs uppercase tracking-[0.35em] text-zinc-500">
+    The ELYAS Journey
+  </p>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-5">
-            {[
-              "The Key",
-              "Meet Elyas",
-              "Discover The Story",
-              "Ownership",
-              "Legacy",
-            ].map((step) => (
-           </div>
-        </section>
+  <div className="mt-6 grid gap-4 md:grid-cols-5">
+    {[
+      "The Key",
+      "Meet Elyas",
+      "Discover The Story",
+      "Ownership",
+      "Legacy",
+    ].map((step) => (
+      <div
+        key={step}
+        className="rounded-2xl bg-black/40 p-4 text-center text-sm text-pink-300"
+      >
+        {step}
       </div>
-    </main>
-  );
-}
+    ))}
+  </div>
+</section>
+
 
 function MetricCard({
   title,
