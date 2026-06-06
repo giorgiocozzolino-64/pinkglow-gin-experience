@@ -1,34 +1,60 @@
 import { supabase } from "@/app/lib/supabase";
 
 async function getDashboardStats() {
-  const { data } = await supabase
+  const { data: timeline } = await supabase
     .from("pinkglow_timeline")
     .select("*");
 
-  const events = data || [];
+  const { count: totalBottles } = await supabase
+    .from("pinkglow_bottles")
+    .select("*", { count: "exact", head: true });
 
-  const pageViews = events.filter((e) => e.event_type === "page_view");
-  const claims = events.filter((e) => e.event_type === "claim");
-  const opened = events.filter((e) => e.event_type === "opened");
-  const transfers = events.filter((e) => e.event_type === "transfer");
+  const { count: totalClaims } = await supabase
+    .from("pinkglow_claims")
+    .select("*", { count: "exact", head: true });
 
-  const uniqueBottles = new Set(pageViews.map((e) => e.serial)).size;
+  const { count: totalContacts } = await supabase
+    .from("pinkglow_contacts")
+    .select("*", { count: "exact", head: true });
+
+  const { count: consentContacts } = await supabase
+    .from("pinkglow_contacts")
+    .select("*", { count: "exact", head: true })
+    .eq("marketing_consent", true);
+
+  const events = timeline || [];
+
+  const pageViews = events.filter((e) => e.event_type === "page_view").length;
+  const opened = events.filter((e) => e.event_type === "opened").length;
+  const transfers = events.filter((e) => e.event_type === "transfer").length;
+
+  const uniqueBottles = new Set(
+    events.filter((e) => e.event_type === "page_view").map((e) => e.serial)
+  ).size;
 
   return {
-    pageViews: pageViews.length,
+    totalBottles: totalBottles || 0,
+    totalClaims: totalClaims || 0,
+    totalContacts: totalContacts || 0,
+    consentContacts: consentContacts || 0,
+    pageViews,
     uniqueBottles,
-    claims: claims.length,
-    opened: opened.length,
-    transfers: transfers.length,
-    conversionRate:
-      uniqueBottles > 0 ? ((claims.length / uniqueBottles) * 100).toFixed(1) : "0",
+    opened,
+    transfers,
+    claimRate: totalBottles
+      ? (((totalClaims || 0) / totalBottles) * 100).toFixed(1)
+      : "0",
+    consentRate: totalContacts
+      ? (((consentContacts || 0) / totalContacts) * 100).toFixed(1)
+      : "0",
+    conversionRate: uniqueBottles
+      ? (((totalClaims || 0) / uniqueBottles) * 100).toFixed(1)
+      : "0",
   };
 }
 
 async function getTopBottles() {
-  const { data } = await supabase
-    .from("pinkglow_page_views")
-    .select("serial");
+  const { data } = await supabase.from("pinkglow_page_views").select("serial");
 
   const counts: Record<string, number> = {};
 
@@ -40,6 +66,21 @@ async function getTopBottles() {
     .map(([serial, views]) => ({ serial, views }))
     .sort((a, b) => b.views - a.views)
     .slice(0, 10);
+}
+
+async function getTopCompanies() {
+  const { data } = await supabase.from("pinkglow_contacts").select("company");
+
+  const counts: Record<string, number> = {};
+
+  (data || []).forEach((row) => {
+    const company = row.company || "Unknown";
+    counts[company] = (counts[company] || 0) + 1;
+  });
+
+  return Object.entries(counts)
+    .map(([company, contacts]) => ({ company, contacts }))
+    .sort((a, b) => b.contacts - a.contacts);
 }
 
 async function getLatestActivity() {
@@ -55,6 +96,7 @@ async function getLatestActivity() {
 export default async function AdminPage() {
   const stats = await getDashboardStats();
   const topBottles = await getTopBottles();
+  const topCompanies = await getTopCompanies();
   const latestActivity = await getLatestActivity();
 
   return (
@@ -64,24 +106,26 @@ export default async function AdminPage() {
           PINKGLOW DIGITAL PASSPORT
         </p>
 
-        <h1 className="mt-4 text-5xl font-bold">
-          Admin Dashboard
-        </h1>
+        <h1 className="mt-4 text-5xl font-bold">Executive Dashboard</h1>
 
         <p className="mt-3 text-zinc-400">
-          Live overview of QR scans, bottle claims, openings and transfers.
+          Live overview of QR scans, bottle claims, contacts, openings and transfers.
         </p>
 
-        <section className="mt-10 grid gap-5 md:grid-cols-3 lg:grid-cols-6">
+        <section className="mt-10 grid gap-5 md:grid-cols-3 lg:grid-cols-5">
+          <StatCard title="Bottles Issued" value={stats.totalBottles} />
           <StatCard title="Page Views" value={stats.pageViews} />
           <StatCard title="Bottles Scanned" value={stats.uniqueBottles} />
-          <StatCard title="Claims" value={stats.claims} />
+          <StatCard title="Claims" value={stats.totalClaims} />
+          <StatCard title="Contacts" value={stats.totalContacts} />
+          <StatCard title="Marketing Consent" value={`${stats.consentRate}%`} />
+          <StatCard title="Claim Rate" value={`${stats.claimRate}%`} />
           <StatCard title="Opened" value={stats.opened} />
           <StatCard title="Transfers" value={stats.transfers} />
           <StatCard title="Conversion" value={`${stats.conversionRate}%`} />
         </section>
 
-        <section className="mt-12 grid gap-8 lg:grid-cols-2">
+        <section className="mt-12 grid gap-8 lg:grid-cols-3">
           <div className="rounded-3xl border border-pink-300/20 bg-white/5 p-6">
             <h2 className="text-2xl font-bold text-pink-300">
               Top Scanned Bottles
@@ -101,6 +145,22 @@ export default async function AdminPage() {
                   <span className="rounded-full bg-pink-500/20 px-3 py-1 text-sm text-pink-300">
                     {bottle.views} views
                   </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-pink-300/20 bg-white/5 p-6">
+            <h2 className="text-2xl font-bold text-pink-300">Top Companies</h2>
+
+            <div className="mt-6 space-y-3">
+              {topCompanies.map((company) => (
+                <div
+                  key={company.company}
+                  className="flex justify-between rounded-2xl bg-black/40 p-4"
+                >
+                  <span>{company.company}</span>
+                  <span className="text-pink-300">{company.contacts}</span>
                 </div>
               ))}
             </div>
@@ -134,22 +194,16 @@ export default async function AdminPage() {
                   {event.owner_name && (
                     <p className="mt-2 text-sm">
                       Owner:{" "}
-                      <span className="text-pink-300">
-                        {event.owner_name}
-                      </span>
+                      <span className="text-pink-300">{event.owner_name}</span>
                     </p>
                   )}
 
                   {event.owner_email && (
-                    <p className="text-sm text-zinc-400">
-                      {event.owner_email}
-                    </p>
+                    <p className="text-sm text-zinc-400">{event.owner_email}</p>
                   )}
 
                   {event.notes && (
-                    <p className="mt-2 text-sm text-zinc-300">
-                      {event.notes}
-                    </p>
+                    <p className="mt-2 text-sm text-zinc-300">{event.notes}</p>
                   )}
                 </div>
               ))}
