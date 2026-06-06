@@ -54,7 +54,10 @@ async function getDashboardStats() {
 }
 
 async function getTopBottles() {
-  const { data } = await supabase.from("pinkglow_page_views").select("serial");
+  const { data } = await supabase
+    .from("pinkglow_timeline")
+    .select("serial, event_type")
+    .eq("event_type", "page_view");
 
   const counts: Record<string, number> = {};
 
@@ -69,12 +72,15 @@ async function getTopBottles() {
 }
 
 async function getTopCompanies() {
-  const { data } = await supabase.from("pinkglow_contacts").select("company");
+  const { data } = await supabase
+    .from("pinkglow_timeline")
+    .select("notes, event_type")
+    .eq("event_type", "claim");
 
   const counts: Record<string, number> = {};
 
   (data || []).forEach((row) => {
-    const company = row.company || "Unknown";
+    const company = row.notes || "Unknown";
     counts[company] = (counts[company] || 0) + 1;
   });
 
@@ -122,7 +128,7 @@ export default async function AdminPage() {
           <StatCard title="Claim Rate" value={`${stats.claimRate}%`} />
           <StatCard title="Opened" value={stats.opened} />
           <StatCard title="Transfers" value={stats.transfers} />
-          <StatCard title="Conversion" value={`${stats.conversionRate}%`} />
+         
         </section>
 
         <section className="mt-12 grid gap-8 lg:grid-cols-3">
