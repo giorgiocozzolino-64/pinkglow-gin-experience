@@ -4,6 +4,7 @@ import { supabase } from "@/app/lib/supabase";
 import ClaimForm from "@/app/components/ClaimForm";
 import TransferOwnershipForm from "@/app/components/TransferOwnershipForm";
 import OpenBottleForm from "@/app/components/OpenBottleForm";
+import TrackPinkglowView from "@/app/components/TrackPinkglowView";
 import Link from "next/link";
 
 async function getBottle(serial: string) {
