@@ -232,7 +232,6 @@ export default function ElyasAdminHome() {
   );
 }
 
-function MetricCard({
 
 function MetricCard({
   title,
