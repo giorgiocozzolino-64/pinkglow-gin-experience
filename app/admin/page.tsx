@@ -1,5 +1,5 @@
 import Link from "next/link";
-
+import Image from "next/image";
 const projects = [
   {
     name: "Pinkglow Gin",
@@ -93,9 +93,29 @@ export default function ElyasAdminHome() {
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-7xl">
-        <p className="tracking-[0.45em] text-pink-400">
-          E.L.Y.A.S.-A.I.
-        </p>
+        <div className="mb-8">
+  <Image
+    src="/elyas-logo.png"
+    alt="ELYAS AI"
+    width={700}
+    height={180}
+    priority
+    className="h-auto w-full max-w-3xl"
+  />
+</div>
+<div className="mb-10 flex flex-wrap gap-4">
+  <span className="rounded-full bg-emerald-500/20 px-4 py-2 text-sm text-emerald-300">
+    CERTIFICATION AUTHORITY ACTIVE
+  </span>
+
+  <span className="rounded-full bg-pink-500/20 px-4 py-2 text-sm text-pink-300">
+    ORACLE NETSUITE CONNECTED
+  </span>
+
+  <span className="rounded-full bg-blue-500/20 px-4 py-2 text-sm text-blue-300">
+    DIGITAL PASSPORT PLATFORM
+  </span>
+</div>
 
         <h1 className="mt-5 text-6xl font-bold">
           Certified Projects Dashboard
