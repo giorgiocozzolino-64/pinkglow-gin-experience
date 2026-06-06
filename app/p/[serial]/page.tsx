@@ -89,6 +89,7 @@ export default async function BottlePage({
 
   return (
     <main className="min-h-screen bg-black text-white">
+      <TrackPinkglowView serial={bottle.serial} />
       <div className="mx-auto max-w-6xl px-6 py-14">
         <header className="flex items-center gap-8 border-b border-white/10 pb-10">
           <Image
