@@ -247,14 +247,7 @@ export default function ElyasAdminHome() {
               "Ownership",
               "Legacy",
             ].map((step) => (
-              <div
-                key={step}
-                className="rounded-2xl bg-black/40 p-4 text-center text-sm text-pink-300"
-              >
-                {step}
-              </div>
-            ))}
-          </div>
+                        </div>
         </section>
       </div>
     </main>
