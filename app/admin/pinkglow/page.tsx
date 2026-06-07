@@ -1,4 +1,6 @@
 import { supabase } from "@/app/lib/supabase";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 async function getDashboardStats() {
   const { data: timeline } = await supabase
