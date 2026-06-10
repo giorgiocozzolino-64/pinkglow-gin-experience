@@ -1,4 +1,4 @@
-import { supabase } from "@/app/lib/supabase";
+import { supabaseAdmin as supabase } from "@/app/lib/supabaseAdmin";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
