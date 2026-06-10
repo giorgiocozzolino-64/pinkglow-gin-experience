@@ -192,6 +192,8 @@ export default async function AdminPage() {
           <StatCard title="Countries" value={stats.uniqueCountries} />
         </section>
 
+        <MapFrame scan={latestGpsActivity[0]} />
+
         <section className="mt-12 grid gap-8 lg:grid-cols-3">
           <Panel title="Top Scanned Bottles">
             {topBottles.length === 0 && (
@@ -199,7 +201,12 @@ export default async function AdminPage() {
             )}
 
             {topBottles.map((bottle) => (
-              <Row key={bottle.serial} left={bottle.serial} right={`${bottle.views} views`} mono />
+              <Row
+                key={bottle.serial}
+                left={bottle.serial}
+                right={`${bottle.views} views`}
+                mono
+              />
             ))}
           </Panel>
 
@@ -346,6 +353,29 @@ function Row({
         {right}
       </span>
     </div>
+  );
+}
+
+function MapFrame({ scan }: { scan: any }) {
+  if (!scan?.latitude || !scan?.longitude) return null;
+
+  return (
+    <section className="mt-8 overflow-hidden rounded-3xl border border-pink-300/20 bg-white/5 p-4">
+      <iframe
+        title="Pinkglow GPS Scan Map"
+        width="100%"
+        height="420"
+        className="rounded-2xl"
+        loading="lazy"
+        src={`https://www.openstreetmap.org/export/embed.html?bbox=${
+          scan.longitude - 0.08
+        }%2C${scan.latitude - 0.05}%2C${
+          scan.longitude + 0.08
+        }%2C${scan.latitude + 0.05}&layer=mapnik&marker=${
+          scan.latitude
+        }%2C${scan.longitude}`}
+      />
+    </section>
   );
 }
 
