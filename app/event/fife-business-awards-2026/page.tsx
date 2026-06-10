@@ -78,22 +78,48 @@ export default function FifeBusinessAwardsGallery() {
 
         <section className="mt-12 rounded-3xl border border-pink-300/20 bg-white/5 p-8">
           <h2 className="text-3xl font-bold text-pink-300">
-            About This Event
+            Historic Milestone
           </h2>
 
-          <p className="mt-6 leading-8 text-zinc-300">
-            The Fife Business Awards 2026 provided the first large-scale live
-            demonstration of the Pinkglow Gin Digital Passport platform.
-            Guests interacted directly with certified bottles through QR scans,
-            ownership registration, digital certificates and live analytics.
-          </p>
+          <div className="mt-6 space-y-6 text-zinc-300 leading-8">
+            <p>
+              <strong>Fife Business Awards 2026</strong>
+              <br />
+              Old Course Hotel, St Andrews, Scotland
+            </p>
 
-          <p className="mt-4 leading-8 text-zinc-300">
-            The event also served as a practical proof of concept for the
-            E.L.Y.A.S. Digital Product Passport ecosystem, combining
-            provenance, ownership, certification and geolocation into a
-            single connected experience.
-          </p>
+            <p>
+              <strong>Mc Fratm Ltd</strong>
+              <br />
+              Digital Innovation & Technology Award Finalist
+            </p>
+
+            <p>
+              The Fife Business Awards 2026 represented the first
+              large-scale public demonstration of the E.L.Y.A.S.
+              Digital Product Passport ecosystem.
+            </p>
+
+            <p>
+              During the event, guests interacted directly with
+              certified products through QR-enabled digital passports,
+              ownership registration, digital certification and
+              traceability technologies.
+            </p>
+
+            <p>
+              The event marked an important milestone in the evolution
+              of E.L.Y.A.S., demonstrating how physical products can
+              be connected to verified digital identities and
+              authenticated provenance records.
+            </p>
+
+            <p className="font-semibold text-pink-300">
+              Every certified product has a story.
+              <br />
+              Every story deserves to be preserved.
+            </p>
+          </div>
         </section>
       </div>
     </main>
