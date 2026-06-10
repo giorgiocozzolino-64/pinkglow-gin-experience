@@ -65,20 +65,6 @@ function buildCouponCode(serial: string) {
   return serial.replace("PG-FC26-", "PG10-FC26-");
 }
 
-const fifeGallery = [
-  "/gallery/fife-business-awards-2026/fife-2026-01.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-02.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-03.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-05.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-06.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-07.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-08.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-09.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-10.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-11.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-12.jpg",
-];
-
 export default async function BottlePage({
   params,
 }: {
@@ -405,29 +391,27 @@ export default async function BottlePage({
             Fife Business Awards 2026
           </p>
 
-          <h3 className="mt-3 text-4xl font-bold text-white">Event Gallery</h3>
+          <h3 className="mt-3 text-4xl font-bold text-white">
+            Event Gallery
+          </h3>
 
           <p className="mt-4 text-zinc-300">
             Pinkglow Gin Digital Passport was showcased during the Fife Business
-            Awards 2026, where guests interacted with the bottles through live
-            QR scans, ownership registration and digital certification.
+            Awards 2026 where guests interacted with live QR scans, ownership
+            registration and digital certification.
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {fifeGallery.map((src, index) => (
-              <div
-                key={src}
-                className="overflow-hidden rounded-2xl border border-pink-300/10 bg-black/40"
-              >
-                <Image
-                  src={src}
-                  alt={`Fife Business Awards 2026 gallery image ${index + 1}`}
-                  width={900}
-                  height={650}
-                  className="h-72 w-full object-cover transition duration-500 hover:scale-105"
-                />
-              </div>
-            ))}
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Link
+              href="/event/fife-business-awards-2026"
+              className="inline-flex items-center rounded-xl bg-pink-500 px-6 py-3 font-semibold text-black transition hover:bg-pink-400"
+            >
+              View Official Gallery →
+            </Link>
+
+            <span className="rounded-xl border border-pink-300/20 px-4 py-3 text-sm text-zinc-400">
+              11 Official Event Photos
+            </span>
           </div>
         </section>
 
