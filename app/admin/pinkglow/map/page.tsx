@@ -1,9 +1,5 @@
 import { supabaseAdmin as supabase } from "@/app/lib/supabaseAdmin";
-import dynamicImport from "next/dynamic";
-const PinkglowScanMap = dynamicImport(
-  () => import("@/app/components/maps/PinkglowScanMap"),
-  { ssr: false }
-);
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -20,6 +16,13 @@ async function getGpsScans() {
 export default async function PinkglowMapPage() {
   const scans = await getGpsScans();
 
+  const latestScan =
+    scans.length > 0 &&
+    scans[0].latitude &&
+    scans[0].longitude
+      ? scans[0]
+      : null;
+
   return (
     <main className="min-h-screen bg-black px-6 py-10 text-white">
       <div className="mx-auto max-w-7xl">
@@ -27,14 +30,32 @@ export default async function PinkglowMapPage() {
           PINKGLOW GEO INTELLIGENCE
         </p>
 
-        <h1 className="mt-4 text-5xl font-bold">Scan Location Map</h1>
+        <h1 className="mt-4 text-5xl font-bold">
+          Scan Location Map
+        </h1>
 
         <p className="mt-3 text-zinc-400">
           Verified GPS scan locations for Pinkglow Digital Passport bottles.
         </p>
-        <section className="mt-10">
-  <PinkglowScanMap scans={scans} />
-</section>
+
+        {latestScan && (
+          <section className="mt-10 overflow-hidden rounded-3xl border border-pink-300/20 bg-white/5 p-4">
+            <iframe
+              title="Pinkglow GPS Scan Map"
+              width="100%"
+              height="520"
+              className="rounded-2xl"
+              loading="lazy"
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${
+                latestScan.longitude - 0.08
+              }%2C${latestScan.latitude - 0.05}%2C${
+                latestScan.longitude + 0.08
+              }%2C${latestScan.latitude + 0.05}&layer=mapnik&marker=${
+                latestScan.latitude
+              }%2C${latestScan.longitude}`}
+            />
+          </section>
+        )}
 
         <section className="mt-10 rounded-3xl border border-pink-300/20 bg-white/5 p-6">
           <h2 className="text-2xl font-bold text-pink-300">
@@ -43,7 +64,9 @@ export default async function PinkglowMapPage() {
 
           <div className="mt-6 space-y-3">
             {scans.length === 0 && (
-              <p className="text-zinc-400">No verified GPS scans yet.</p>
+              <p className="text-zinc-400">
+                No verified GPS scans yet.
+              </p>
             )}
 
             {scans.map((scan: any) => (
@@ -52,9 +75,12 @@ export default async function PinkglowMapPage() {
                 className="rounded-2xl bg-black/40 p-4"
               >
                 <div className="flex items-center justify-between gap-4">
-                  <span className="font-mono text-sm">{scan.serial}</span>
+                  <span className="font-mono text-sm">
+                    {scan.serial}
+                  </span>
+
                   <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs uppercase tracking-wider text-emerald-300">
-                    GPS Verified
+                    GPS VERIFIED
                   </span>
                 </div>
 
