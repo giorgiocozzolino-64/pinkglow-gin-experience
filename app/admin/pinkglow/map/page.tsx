@@ -1,5 +1,9 @@
 import { supabaseAdmin as supabase } from "@/app/lib/supabaseAdmin";
-
+import dynamicImport from "next/dynamic";
+const PinkglowScanMap = dynamicImport(
+  () => import("@/app/components/maps/PinkglowScanMap"),
+  { ssr: false }
+);
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -28,6 +32,9 @@ export default async function PinkglowMapPage() {
         <p className="mt-3 text-zinc-400">
           Verified GPS scan locations for Pinkglow Digital Passport bottles.
         </p>
+        <section className="mt-10">
+  <PinkglowScanMap scans={scans} />
+</section>
 
         <section className="mt-10 rounded-3xl border border-pink-300/20 bg-white/5 p-6">
           <h2 className="text-2xl font-bold text-pink-300">
