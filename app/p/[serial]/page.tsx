@@ -69,7 +69,6 @@ const fifeGallery = [
   "/gallery/fife-business-awards-2026/fife-2026-01.jpg",
   "/gallery/fife-business-awards-2026/fife-2026-02.jpg",
   "/gallery/fife-business-awards-2026/fife-2026-03.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-04.jpg",
   "/gallery/fife-business-awards-2026/fife-2026-05.jpg",
   "/gallery/fife-business-awards-2026/fife-2026-06.jpg",
   "/gallery/fife-business-awards-2026/fife-2026-07.jpg",
