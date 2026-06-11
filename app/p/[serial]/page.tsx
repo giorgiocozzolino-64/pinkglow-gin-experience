@@ -6,7 +6,6 @@ import TransferOwnershipForm from "@/app/components/TransferOwnershipForm";
 import OpenBottleForm from "@/app/components/OpenBottleForm";
 import TrackPinkglowView from "@/app/components/TrackPinkglowView";
 import Link from "next/link";
-import PinkglowAudioExperience from "@/app/components/PinkglowAudioExperience";
 
 async function getBottle(serial: string) {
   const { data, error } = await supabase
@@ -90,7 +89,6 @@ export default async function BottlePage({
 
   return (
     <main className="min-h-screen bg-black text-white">
-      <PinkglowAudioExperience />
       <TrackPinkglowView serial={bottle.serial} />
 
       <div className="mx-auto max-w-6xl px-6 py-14">

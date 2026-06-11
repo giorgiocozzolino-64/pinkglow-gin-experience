@@ -1,12 +1,20 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 
 export default function PinkglowAudioExperience() {
+  const pathname = usePathname();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [entered, setEntered] = useState(false);
   const [playing, setPlaying] = useState(false);
+
+  const isPinkglowRoute =
+    pathname.startsWith("/p/") ||
+    pathname.startsWith("/event/fife-business-awards-2026");
+
+  if (!isPinkglowRoute) return null;
 
   async function enterExperience() {
     const audio = audioRef.current;
@@ -40,19 +48,16 @@ export default function PinkglowAudioExperience() {
   return (
     <>
       <audio ref={audioRef} loop preload="auto">
-        <source
-          src="/audio/pinkglow-scottish-pipes.mp3"
-          type="audio/mpeg"
-        />
+        <source src="/audio/pinkglow-scottish-pipes.mp3" type="audio/mpeg" />
       </audio>
 
-      {!entered && (
+      {!entered && pathname.startsWith("/p/") && (
         <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black px-6 text-center text-white">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(236,72,153,0.18),transparent_55%)]" />
 
           <div className="relative z-10">
             <p className="text-sm uppercase tracking-[0.5em] text-pink-400">
-              E.L.Y.A.S.
+              E.L.Y.A.S-A.I.
             </p>
 
             <div className="mx-auto mt-6 flex h-24 w-24 items-center justify-center rounded-full border border-pink-300/30 bg-white/5 shadow-[0_0_50px_rgba(236,72,153,0.35)]">
@@ -68,9 +73,8 @@ export default function PinkglowAudioExperience() {
             </p>
 
             <p className="mx-auto mt-8 max-w-xl text-zinc-400">
-              Authenticating Digital Passport.
-              Enter the certified Pinkglow experience
-              with Scottish Highland soundscape.
+              Authenticating Digital Passport. Enter the certified Pinkglow
+              experience with Scottish Highland soundscape.
             </p>
 
             <button
@@ -82,7 +86,7 @@ export default function PinkglowAudioExperience() {
             </button>
 
             <p className="mt-10 text-xs uppercase tracking-[0.3em] text-zinc-600">
-              Verified by E.L.Y.A.S. Certification Authority
+              Verified by E.L.Y.A.S-A.I. Certification Authority
             </p>
           </div>
         </div>
@@ -95,9 +99,7 @@ export default function PinkglowAudioExperience() {
             onClick={toggleAudio}
             className="rounded-full border border-pink-300/30 bg-black/85 px-5 py-3 text-sm font-semibold text-pink-300 shadow-2xl backdrop-blur transition hover:bg-pink-500 hover:text-black"
           >
-            {playing
-              ? "⏸ Pause Soundscape"
-              : "▶ Start Soundscape"}
+            {playing ? "⏸ Pause Soundscape" : "▶ Start Soundscape"}
           </button>
         </div>
       )}
