@@ -1,12 +1,31 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function PinkglowAudioExperience() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [blocked, setBlocked] = useState(false);
 
-  async function toggleAudio() {
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.volume = 0.25;
+
+    audio
+      .play()
+      .then(() => {
+        setPlaying(true);
+        setBlocked(false);
+      })
+      .catch(() => {
+        setPlaying(false);
+        setBlocked(true);
+      });
+  }, []);
+
+  function toggleAudio() {
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -18,18 +37,15 @@ export default function PinkglowAudioExperience() {
       return;
     }
 
-    try {
-      await audio.play();
+    audio.play().then(() => {
       setPlaying(true);
-    } catch (error) {
-      console.error("Pinkglow audio error:", error);
-      setPlaying(false);
-    }
+      setBlocked(false);
+    });
   }
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <audio ref={audioRef} loop preload="metadata">
+      <audio ref={audioRef} loop preload="auto">
         <source src="/audio/pinkglow-scottish-pipes.mp3" type="audio/mpeg" />
       </audio>
 
@@ -38,7 +54,11 @@ export default function PinkglowAudioExperience() {
         onClick={toggleAudio}
         className="rounded-full border border-pink-300/30 bg-black/85 px-5 py-3 text-sm font-semibold text-pink-300 shadow-2xl backdrop-blur transition hover:bg-pink-500 hover:text-black"
       >
-        {playing ? "⏸ Pause Soundscape" : "▶ Enter Pinkglow Experience"}
+        {playing
+          ? "⏸ Pause Soundscape"
+          : blocked
+          ? "▶ Start Soundscape"
+          : "▶ Enter Pinkglow Experience"}
       </button>
     </div>
   );
