@@ -1,21 +1,24 @@
+import fs from "fs";
+import path from "path";
 import Image from "next/image";
 import Link from "next/link";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-const galleryImages = [
-  "/gallery/fife-business-awards-2026/fife-2026-01.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-02.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-03.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-05.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-06.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-07.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-08.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-09.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-10.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-11.jpg",
-  "/gallery/fife-business-awards-2026/fife-2026-12.jpg",
-];
+const GALLERY_DIR = "gallery/fife-business-awards-2026";
+
+function getGalleryImages(): string[] {
+  const dir = path.join(process.cwd(), "public", GALLERY_DIR);
+  return fs
+    .readdirSync(dir)
+    .filter((file) => /\.(jpg|jpeg|png|webp)$/i.test(file))
+    .sort()
+    .map((file) => `/${GALLERY_DIR}/${file}`);
+}
 
 export default function FifeBusinessAwardsGallery() {
+  const galleryImages = getGalleryImages();
+
   return (
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-7xl px-6 py-12">
@@ -48,7 +51,7 @@ export default function FifeBusinessAwardsGallery() {
           <div className="grid gap-6 md:grid-cols-4">
             <StatCard title="Event" value="Fife Awards" />
             <StatCard title="Year" value="2026" />
-            <StatCard title="Photos" value="11" />
+            <StatCard title="Photos" value={String(galleryImages.length)} />
             <StatCard title="Digital Passport" value="LIVE" />
           </div>
         </section>
@@ -69,6 +72,8 @@ export default function FifeBusinessAwardsGallery() {
                   alt={`Fife Business Awards ${index + 1}`}
                   width={1200}
                   height={800}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  loading={index < 6 ? "eager" : "lazy"}
                   className="h-80 w-full object-cover transition duration-500 hover:scale-105"
                 />
               </div>
