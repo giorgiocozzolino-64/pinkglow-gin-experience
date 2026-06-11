@@ -22,7 +22,7 @@ export default function FifeBusinessAwardsGallery() {
         <div className="flex items-center justify-between">
           <div>
             <p className="uppercase tracking-[0.35em] text-pink-400">
-              E.L.Y.A.S. Event Archive
+              E.L.Y.A.S.-A.I. Event Archive
             </p>
 
             <h1 className="mt-4 text-5xl font-bold">
@@ -96,7 +96,7 @@ export default function FifeBusinessAwardsGallery() {
 
             <p>
               The Fife Business Awards 2026 represented the first
-              large-scale public demonstration of the E.L.Y.A.S.
+              large-scale public demonstration of the E.L.Y.A.S.-A.I.
               Digital Product Passport ecosystem.
             </p>
 
@@ -109,7 +109,7 @@ export default function FifeBusinessAwardsGallery() {
 
             <p>
               The event marked an important milestone in the evolution
-              of E.L.Y.A.S., demonstrating how physical products can
+              of E.L.Y.A.S.-A.I., demonstrating how physical products can
               be connected to verified digital identities and
               authenticated provenance records.
             </p>
