@@ -4,6 +4,26 @@ import { supabaseAdmin as supabase } from "@/app/lib/supabaseAdmin";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+type BreakdownItem = {
+  name: string;
+  scans: number;
+};
+
+function countryFlag(country: string) {
+  const normalized = country.toLowerCase();
+
+  if (normalized.includes("united kingdom")) return "🇬🇧";
+  if (normalized.includes("scotland")) return "🏴󠁧󠁢󠁳󠁣󠁴󠁿";
+  if (normalized.includes("germany")) return "🇩🇪";
+  if (normalized.includes("deutschland")) return "🇩🇪";
+  if (normalized.includes("italy")) return "🇮🇹";
+  if (normalized.includes("italia")) return "🇮🇹";
+  if (normalized.includes("netherlands")) return "🇳🇱";
+  if (normalized.includes("united states")) return "🇺🇸";
+
+  return "🌍";
+}
+
 async function getDashboardStats() {
   const { data: timeline } = await supabase.from("pinkglow_timeline").select("*");
   const { data: pageViewsData } = await supabase.from("pinkglow_page_views").select("*");
@@ -32,14 +52,18 @@ async function getDashboardStats() {
       scan.longitude !== null
   );
 
+  const cleanGpsScans = gpsScans.filter(
+    (scan) => scan.city || scan.region || scan.country
+  );
+
   const pageViews = scans.length;
   const opened = events.filter((e) => e.event_type === "opened").length;
   const transfers = events.filter((e) => e.event_type === "transfer").length;
   const uniqueBottles = new Set(scans.map((e) => e.serial)).size;
 
-  const uniqueCities = new Set(gpsScans.map((s) => s.city).filter(Boolean)).size;
-  const uniqueRegions = new Set(gpsScans.map((s) => s.region).filter(Boolean)).size;
-  const uniqueCountries = new Set(gpsScans.map((s) => s.country).filter(Boolean)).size;
+  const uniqueCities = new Set(cleanGpsScans.map((s) => s.city).filter(Boolean)).size;
+  const uniqueRegions = new Set(cleanGpsScans.map((s) => s.region).filter(Boolean)).size;
+  const uniqueCountries = new Set(cleanGpsScans.map((s) => s.country).filter(Boolean)).size;
 
   return {
     totalBottles: totalBottles || 0,
@@ -111,11 +135,17 @@ async function getTopCompanies() {
     .sort((a, b) => b.contacts - a.contacts);
 }
 
-function buildBreakdown(scans: any[], field: "city" | "region" | "country") {
+function buildBreakdown(
+  scans: any[],
+  field: "city" | "region" | "country"
+): BreakdownItem[] {
   const counts: Record<string, number> = {};
 
   scans.forEach((scan) => {
-    const value = scan[field] || "Unknown";
+    const value = scan[field];
+
+    if (!value) return;
+
     counts[value] = (counts[value] || 0) + 1;
   });
 
@@ -179,8 +209,31 @@ export default async function AdminPage() {
           <PinkglowScanMapLoader scans={allGpsActivity} />
         </section>
 
+        <section className="mt-12 rounded-3xl border border-pink-300/20 bg-white/5 p-6">
+          <p className="text-xs uppercase tracking-[0.35em] text-pink-400">
+            Global Reach
+          </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {countryBreakdown.map((country) => (
+              <div
+                key={country.name}
+                className="rounded-2xl bg-black/40 p-5"
+              >
+                <p className="text-2xl font-bold">
+                  {countryFlag(country.name)} {country.name}
+                </p>
+
+                <p className="mt-3 text-pink-300">
+                  {country.scans} scans
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="mt-12 grid gap-8 lg:grid-cols-3">
-          <Panel id="cities" title="Cities">
+          <Panel id="cities" title="Top Cities">
             {cityBreakdown.length === 0 && (
               <p className="text-zinc-400">No city data yet.</p>
             )}
@@ -206,7 +259,11 @@ export default async function AdminPage() {
             )}
 
             {countryBreakdown.map((item) => (
-              <Row key={item.name} left={item.name} right={`${item.scans} scans`} />
+              <Row
+                key={item.name}
+                left={`${countryFlag(item.name)} ${item.name}`}
+                right={`${item.scans} scans`}
+              />
             ))}
           </Panel>
         </section>
@@ -376,6 +433,7 @@ function Row({
   return (
     <div className="flex items-center justify-between gap-4 rounded-2xl bg-black/40 p-4">
       <span className={mono ? "font-mono text-sm" : ""}>{left}</span>
+
       <span className="rounded-full bg-pink-500/20 px-3 py-1 text-sm text-pink-300">
         {right}
       </span>
@@ -397,6 +455,7 @@ function StatCard({
       <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
         {title}
       </p>
+
       <p className="mt-3 text-3xl font-bold text-pink-300">{value}</p>
     </div>
   );
