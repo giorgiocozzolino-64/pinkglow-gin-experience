@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import PinkglowScanMapLoader from "@/app/components/maps/PinkglowScanMapLoader";
 import { supabaseAdmin as supabase } from "@/app/lib/supabaseAdmin";
 
@@ -10,23 +11,39 @@ type BreakdownItem = {
 };
 
 function countryFlag(country: string) {
-  const normalized = country.toLowerCase();
+  const c = country.toLowerCase().trim();
 
-  if (normalized.includes("united kingdom")) return "🇬🇧";
-  if (normalized.includes("scotland")) return "🏴󠁧󠁢󠁳󠁣󠁴󠁿";
-  if (normalized.includes("germany")) return "🇩🇪";
-  if (normalized.includes("deutschland")) return "🇩🇪";
-  if (normalized.includes("italy")) return "🇮🇹";
-  if (normalized.includes("italia")) return "🇮🇹";
-  if (normalized.includes("netherlands")) return "🇳🇱";
-  if (normalized.includes("united states")) return "🇺🇸";
+  if (c.startsWith("gb") || c.includes("united kingdom")) return "🇬🇧";
+  if (c.startsWith("de") || c.includes("deutschland") || c.includes("germany")) return "🇩🇪";
+  if (c.startsWith("it") || c.includes("italy") || c.includes("italia")) return "🇮🇹";
+  if (c.startsWith("nl") || c.includes("netherlands")) return "🇳🇱";
+  if (c.startsWith("us") || c.includes("united states")) return "🇺🇸";
 
   return "🌍";
 }
 
+function cleanCountryName(country: string) {
+  const cleaned = country
+    .replace(/^GB\s+/i, "")
+    .replace(/^DE\s+/i, "")
+    .replace(/^IT\s+/i, "")
+    .replace(/^NL\s+/i, "")
+    .replace(/^US\s+/i, "")
+    .trim();
+
+  if (cleaned.toLowerCase() === "deutschland") return "Germany";
+
+  return cleaned;
+}
+
 async function getDashboardStats() {
-  const { data: timeline } = await supabase.from("pinkglow_timeline").select("*");
-  const { data: pageViewsData } = await supabase.from("pinkglow_page_views").select("*");
+  const { data: timeline } = await supabase
+    .from("pinkglow_timeline")
+    .select("*");
+
+  const { data: pageViewsData } = await supabase
+    .from("pinkglow_page_views")
+    .select("*");
 
   const { count: totalBottles } = await supabase
     .from("pinkglow_bottles")
@@ -36,7 +53,9 @@ async function getDashboardStats() {
     .from("pinkglow_claims")
     .select("*", { count: "exact", head: true });
 
-  const { data: contacts } = await supabase.from("pinkglow_contacts").select("*");
+  const { data: contacts } = await supabase
+    .from("pinkglow_contacts")
+    .select("*");
 
   const totalContacts = contacts?.length || 0;
   const consentContacts =
@@ -61,9 +80,17 @@ async function getDashboardStats() {
   const transfers = events.filter((e) => e.event_type === "transfer").length;
   const uniqueBottles = new Set(scans.map((e) => e.serial)).size;
 
-  const uniqueCities = new Set(cleanGpsScans.map((s) => s.city).filter(Boolean)).size;
-  const uniqueRegions = new Set(cleanGpsScans.map((s) => s.region).filter(Boolean)).size;
-  const uniqueCountries = new Set(cleanGpsScans.map((s) => s.country).filter(Boolean)).size;
+  const uniqueCities = new Set(
+    cleanGpsScans.map((s) => s.city).filter(Boolean)
+  ).size;
+
+  const uniqueRegions = new Set(
+    cleanGpsScans.map((s) => s.region).filter(Boolean)
+  ).size;
+
+  const uniqueCountries = new Set(
+    cleanGpsScans.map((s) => s.country).filter(Boolean)
+  ).size;
 
   return {
     totalBottles: totalBottles || 0,
@@ -143,7 +170,6 @@ function buildBreakdown(
 
   scans.forEach((scan) => {
     const value = scan[field];
-
     if (!value) return;
 
     counts[value] = (counts[value] || 0) + 1;
@@ -175,6 +201,11 @@ export default async function AdminPage() {
   const regionBreakdown = buildBreakdown(allGpsActivity, "region");
   const countryBreakdown = buildBreakdown(allGpsActivity, "country");
 
+  const mostActiveCity = cityBreakdown[0]?.name || "No data yet";
+  const mostActiveCountry = countryBreakdown[0]?.name
+    ? cleanCountryName(countryBreakdown[0].name)
+    : "No data yet";
+
   return (
     <main className="min-h-screen bg-black px-6 py-10 text-white">
       <div className="mx-auto max-w-7xl">
@@ -205,6 +236,19 @@ export default async function AdminPage() {
           <StatCard title="Countries" value={stats.uniqueCountries} href="#countries" />
         </section>
 
+        <section className="mt-8 rounded-3xl border border-pink-300/20 bg-white/5 p-6">
+          <p className="text-xs uppercase tracking-[0.35em] text-pink-400">
+            Global Product Intelligence
+          </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            <MiniKpi title="Countries Reached" value={stats.uniqueCountries} />
+            <MiniKpi title="Cities Reached" value={stats.uniqueCities} />
+            <MiniKpi title="Most Active City" value={mostActiveCity} />
+            <MiniKpi title="Most Active Country" value={mostActiveCountry} />
+          </div>
+        </section>
+
         <section className="mt-8">
           <PinkglowScanMapLoader scans={allGpsActivity} />
         </section>
@@ -216,17 +260,12 @@ export default async function AdminPage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {countryBreakdown.map((country) => (
-              <div
-                key={country.name}
-                className="rounded-2xl bg-black/40 p-5"
-              >
+              <div key={country.name} className="rounded-2xl bg-black/40 p-5">
                 <p className="text-2xl font-bold">
-                  {countryFlag(country.name)} {country.name}
+                  {countryFlag(country.name)} {cleanCountryName(country.name)}
                 </p>
 
-                <p className="mt-3 text-pink-300">
-                  {country.scans} scans
-                </p>
+                <p className="mt-3 text-pink-300">{country.scans} scans</p>
               </div>
             ))}
           </div>
@@ -261,7 +300,7 @@ export default async function AdminPage() {
             {countryBreakdown.map((item) => (
               <Row
                 key={item.name}
-                left={`${countryFlag(item.name)} ${item.name}`}
+                left={`${countryFlag(item.name)} ${cleanCountryName(item.name)}`}
                 right={`${item.scans} scans`}
               />
             ))}
@@ -306,7 +345,7 @@ export default async function AdminPage() {
             {allGpsActivity.slice(0, 10).map((event: any, index) => (
               <Row
                 key={`${event.serial}-${event.created_at}-${index}`}
-                left={[event.city, event.region, event.country]
+                left={[event.city, event.region, cleanCountryName(event.country || "")]
                   .filter(Boolean)
                   .join(", ")}
                 right={event.serial}
@@ -338,7 +377,7 @@ export default async function AdminPage() {
                 </div>
 
                 <p className="mt-2 text-sm text-zinc-300">
-                  {[event.city, event.region, event.country]
+                  {[event.city, event.region, cleanCountryName(event.country || "")]
                     .filter(Boolean)
                     .join(", ")}
                 </p>
@@ -401,6 +440,24 @@ export default async function AdminPage() {
   );
 }
 
+function MiniKpi({
+  title,
+  value,
+}: {
+  title: string;
+  value: string | number;
+}) {
+  return (
+    <div className="rounded-2xl bg-black/40 p-5">
+      <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
+        {title}
+      </p>
+
+      <p className="mt-3 text-2xl font-bold text-pink-300">{value}</p>
+    </div>
+  );
+}
+
 function Panel({
   id,
   title,
@@ -408,7 +465,7 @@ function Panel({
 }: {
   id?: string;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div
