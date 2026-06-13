@@ -1,3 +1,4 @@
+import PinkglowScanMapLoader from "@/app/components/maps/PinkglowScanMapLoader";
 import { supabaseAdmin as supabase } from "@/app/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
@@ -5,10 +6,7 @@ export const revalidate = 0;
 
 async function getDashboardStats() {
   const { data: timeline } = await supabase.from("pinkglow_timeline").select("*");
-
-  const { data: pageViewsData } = await supabase
-    .from("pinkglow_page_views")
-    .select("*");
+  const { data: pageViewsData } = await supabase.from("pinkglow_page_views").select("*");
 
   const { count: totalBottles } = await supabase
     .from("pinkglow_bottles")
@@ -18,39 +16,30 @@ async function getDashboardStats() {
     .from("pinkglow_claims")
     .select("*", { count: "exact", head: true });
 
-  const { data: contacts } = await supabase
-    .from("pinkglow_contacts")
-    .select("*");
+  const { data: contacts } = await supabase.from("pinkglow_contacts").select("*");
 
   const totalContacts = contacts?.length || 0;
-
   const consentContacts =
     contacts?.filter((c) => c.marketing_consent === true).length || 0;
 
   const events = timeline || [];
   const scans = pageViewsData || [];
 
+  const gpsScans = scans.filter(
+    (scan) =>
+      scan.gps_allowed === true &&
+      scan.latitude !== null &&
+      scan.longitude !== null
+  );
+
   const pageViews = scans.length;
   const opened = events.filter((e) => e.event_type === "opened").length;
   const transfers = events.filter((e) => e.event_type === "transfer").length;
-
   const uniqueBottles = new Set(scans.map((e) => e.serial)).size;
 
-  const gpsScans = scans.filter(
-    (scan) => scan.gps_allowed === true && scan.latitude && scan.longitude
-  );
-
-  const uniqueCities = new Set(
-    gpsScans.map((scan) => scan.city).filter(Boolean)
-  ).size;
-
-  const uniqueRegions = new Set(
-    gpsScans.map((scan) => scan.region).filter(Boolean)
-  ).size;
-
-  const uniqueCountries = new Set(
-    gpsScans.map((scan) => scan.country).filter(Boolean)
-  ).size;
+  const uniqueCities = new Set(gpsScans.map((s) => s.city).filter(Boolean)).size;
+  const uniqueRegions = new Set(gpsScans.map((s) => s.region).filter(Boolean)).size;
+  const uniqueCountries = new Set(gpsScans.map((s) => s.country).filter(Boolean)).size;
 
   return {
     totalBottles: totalBottles || 0,
@@ -71,10 +60,19 @@ async function getDashboardStats() {
     consentRate: totalContacts
       ? (((consentContacts || 0) / totalContacts) * 100).toFixed(1)
       : "0",
-    conversionRate: uniqueBottles
-      ? (((totalClaims || 0) / uniqueBottles) * 100).toFixed(1)
-      : "0",
   };
+}
+
+async function getAllGpsActivity() {
+  const { data } = await supabase
+    .from("pinkglow_page_views")
+    .select("*")
+    .eq("gps_allowed", true)
+    .not("latitude", "is", null)
+    .not("longitude", "is", null)
+    .order("created_at", { ascending: false });
+
+  return data || [];
 }
 
 async function getTopBottles() {
@@ -113,24 +111,17 @@ async function getTopCompanies() {
     .sort((a, b) => b.contacts - a.contacts);
 }
 
-async function getTopLocations() {
-  const { data } = await supabase
-    .from("pinkglow_page_views")
-    .select("city, region, country, gps_allowed")
-    .eq("gps_allowed", true);
-
+function buildBreakdown(scans: any[], field: "city" | "region" | "country") {
   const counts: Record<string, number> = {};
 
-  (data || []).forEach((row) => {
-    const label = [row.city, row.region, row.country].filter(Boolean).join(", ");
-    if (!label) return;
-    counts[label] = (counts[label] || 0) + 1;
+  scans.forEach((scan) => {
+    const value = scan[field] || "Unknown";
+    counts[value] = (counts[value] || 0) + 1;
   });
 
   return Object.entries(counts)
-    .map(([location, scans]) => ({ location, scans }))
-    .sort((a, b) => b.scans - a.scans)
-    .slice(0, 10);
+    .map(([name, scans]) => ({ name, scans }))
+    .sort((a, b) => b.scans - a.scans);
 }
 
 async function getLatestActivity() {
@@ -143,24 +134,16 @@ async function getLatestActivity() {
   return data || [];
 }
 
-async function getLatestGpsActivity() {
-  const { data } = await supabase
-    .from("pinkglow_page_views")
-    .select("*")
-    .eq("gps_allowed", true)
-    .order("created_at", { ascending: false })
-    .limit(10);
-
-  return data || [];
-}
-
 export default async function AdminPage() {
   const stats = await getDashboardStats();
+  const allGpsActivity = await getAllGpsActivity();
   const topBottles = await getTopBottles();
   const topCompanies = await getTopCompanies();
-  const topLocations = await getTopLocations();
   const latestActivity = await getLatestActivity();
-  const latestGpsActivity = await getLatestGpsActivity();
+
+  const cityBreakdown = buildBreakdown(allGpsActivity, "city");
+  const regionBreakdown = buildBreakdown(allGpsActivity, "region");
+  const countryBreakdown = buildBreakdown(allGpsActivity, "country");
 
   return (
     <main className="min-h-screen bg-black px-6 py-10 text-white">
@@ -187,12 +170,46 @@ export default async function AdminPage() {
           <StatCard title="Opened" value={stats.opened} />
           <StatCard title="Transfers" value={stats.transfers} />
           <StatCard title="GPS Verified" value={stats.gpsVerifiedScans} />
-          <StatCard title="Cities" value={stats.uniqueCities} />
-          <StatCard title="Regions" value={stats.uniqueRegions} />
-          <StatCard title="Countries" value={stats.uniqueCountries} />
+          <StatCard title="Cities" value={stats.uniqueCities} href="#cities" />
+          <StatCard title="Regions" value={stats.uniqueRegions} href="#regions" />
+          <StatCard title="Countries" value={stats.uniqueCountries} href="#countries" />
         </section>
 
-        <MapFrame scan={latestGpsActivity[0]} />
+        <section className="mt-8">
+          <PinkglowScanMapLoader scans={allGpsActivity} />
+        </section>
+
+        <section className="mt-12 grid gap-8 lg:grid-cols-3">
+          <Panel id="cities" title="Cities">
+            {cityBreakdown.length === 0 && (
+              <p className="text-zinc-400">No city data yet.</p>
+            )}
+
+            {cityBreakdown.map((item) => (
+              <Row key={item.name} left={item.name} right={`${item.scans} scans`} />
+            ))}
+          </Panel>
+
+          <Panel id="regions" title="Regions">
+            {regionBreakdown.length === 0 && (
+              <p className="text-zinc-400">No region data yet.</p>
+            )}
+
+            {regionBreakdown.map((item) => (
+              <Row key={item.name} left={item.name} right={`${item.scans} scans`} />
+            ))}
+          </Panel>
+
+          <Panel id="countries" title="Countries">
+            {countryBreakdown.length === 0 && (
+              <p className="text-zinc-400">No country data yet.</p>
+            )}
+
+            {countryBreakdown.map((item) => (
+              <Row key={item.name} left={item.name} right={`${item.scans} scans`} />
+            ))}
+          </Panel>
+        </section>
 
         <section className="mt-12 grid gap-8 lg:grid-cols-3">
           <Panel title="Top Scanned Bottles">
@@ -211,6 +228,10 @@ export default async function AdminPage() {
           </Panel>
 
           <Panel title="Top Companies">
+            {topCompanies.length === 0 && (
+              <p className="text-zinc-400">No companies recorded yet.</p>
+            )}
+
             {topCompanies.map((company) => (
               <Row
                 key={company.company}
@@ -220,16 +241,19 @@ export default async function AdminPage() {
             ))}
           </Panel>
 
-          <Panel title="Top Locations">
-            {topLocations.length === 0 && (
+          <Panel title="Top GPS Locations">
+            {allGpsActivity.length === 0 && (
               <p className="text-zinc-400">No verified GPS locations yet.</p>
             )}
 
-            {topLocations.map((location) => (
+            {allGpsActivity.slice(0, 10).map((event: any, index) => (
               <Row
-                key={location.location}
-                left={location.location}
-                right={`${location.scans} scans`}
+                key={`${event.serial}-${event.created_at}-${index}`}
+                left={[event.city, event.region, event.country]
+                  .filter(Boolean)
+                  .join(", ")}
+                right={event.serial}
+                mono
               />
             ))}
           </Panel>
@@ -237,11 +261,11 @@ export default async function AdminPage() {
 
         <section className="mt-8 grid gap-8 lg:grid-cols-2">
           <Panel title="Latest GPS Activity">
-            {latestGpsActivity.length === 0 && (
+            {allGpsActivity.length === 0 && (
               <p className="text-zinc-400">No GPS activity yet.</p>
             )}
 
-            {latestGpsActivity.map((event: any, index) => (
+            {allGpsActivity.slice(0, 20).map((event: any, index) => (
               <div
                 key={`${event.serial}-${event.created_at}-${index}`}
                 className="rounded-2xl bg-black/40 p-4"
@@ -268,11 +292,9 @@ export default async function AdminPage() {
                   })}
                 </p>
 
-                {event.latitude && event.longitude && (
-                  <p className="mt-2 font-mono text-xs text-zinc-500">
-                    {event.latitude}, {event.longitude}
-                  </p>
-                )}
+                <p className="mt-2 font-mono text-xs text-zinc-500">
+                  {event.latitude}, {event.longitude}
+                </p>
               </div>
             ))}
           </Panel>
@@ -323,14 +345,19 @@ export default async function AdminPage() {
 }
 
 function Panel({
+  id,
   title,
   children,
 }: {
+  id?: string;
   title: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-3xl border border-pink-300/20 bg-white/5 p-6">
+    <div
+      id={id}
+      className="rounded-3xl border border-pink-300/20 bg-white/5 p-6"
+    >
       <h2 className="text-2xl font-bold text-pink-300">{title}</h2>
       <div className="mt-6 space-y-3">{children}</div>
     </div>
@@ -356,42 +383,27 @@ function Row({
   );
 }
 
-function MapFrame({ scan }: { scan: any }) {
-  if (!scan?.latitude || !scan?.longitude) return null;
-
-  return (
-    <section className="mt-8 overflow-hidden rounded-3xl border border-pink-300/20 bg-white/5 p-4">
-      <iframe
-        title="Pinkglow GPS Scan Map"
-        width="100%"
-        height="420"
-        className="rounded-2xl"
-        loading="lazy"
-        src={`https://www.openstreetmap.org/export/embed.html?bbox=${
-          scan.longitude - 0.08
-        }%2C${scan.latitude - 0.05}%2C${
-          scan.longitude + 0.08
-        }%2C${scan.latitude + 0.05}&layer=mapnik&marker=${
-          scan.latitude
-        }%2C${scan.longitude}`}
-      />
-    </section>
-  );
-}
-
 function StatCard({
   title,
   value,
+  href,
 }: {
   title: string;
   value: string | number;
+  href?: string;
 }) {
-  return (
-    <div className="rounded-3xl border border-pink-300/20 bg-white/5 p-5">
+  const card = (
+    <div className="rounded-3xl border border-pink-300/20 bg-white/5 p-5 transition hover:border-pink-300/60 hover:bg-pink-500/10">
       <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
         {title}
       </p>
       <p className="mt-3 text-3xl font-bold text-pink-300">{value}</p>
     </div>
   );
+
+  if (href) {
+    return <a href={href}>{card}</a>;
+  }
+
+  return card;
 }
