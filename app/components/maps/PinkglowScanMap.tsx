@@ -12,19 +12,41 @@ const markerIcon = new L.Icon({
 });
 
 export default function PinkglowScanMap({ scans }: { scans: any[] }) {
-  const validScans = scans.filter((s) => s.latitude && s.longitude);
+  const validScans = scans.filter(
+    (s) => s.latitude !== null && s.longitude !== null
+  );
 
   if (validScans.length === 0) {
     return <p className="text-zinc-400">No GPS points available.</p>;
   }
 
-  const first = validScans[0];
+  const grouped = Object.values(
+    validScans.reduce((acc: any, scan: any) => {
+      const key = `${scan.latitude}-${scan.longitude}`;
+
+      if (!acc[key]) {
+        acc[key] = {
+          latitude: scan.latitude,
+          longitude: scan.longitude,
+          city: scan.city,
+          region: scan.region,
+          country: scan.country,
+          scans: [],
+        };
+      }
+
+      acc[key].scans.push(scan);
+      return acc;
+    }, {})
+  ) as any[];
+
+  const first = grouped[0];
 
   return (
     <div className="h-[520px] overflow-hidden rounded-3xl border border-pink-300/20">
       <MapContainer
         center={[first.latitude, first.longitude]}
-        zoom={8}
+        zoom={5}
         scrollWheelZoom={true}
         className="h-full w-full"
       >
@@ -33,20 +55,32 @@ export default function PinkglowScanMap({ scans }: { scans: any[] }) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {validScans.map((scan) => (
+        {grouped.map((location: any) => (
           <Marker
-            key={scan.id}
-            position={[scan.latitude, scan.longitude]}
+            key={`${location.latitude}-${location.longitude}`}
+            position={[location.latitude, location.longitude]}
             icon={markerIcon}
           >
             <Popup>
-              <strong>{scan.serial}</strong>
+              <strong>
+                {location.city || "Unknown city"}
+              </strong>
               <br />
-              {[scan.city, scan.region, scan.country].filter(Boolean).join(", ")}
+              {[location.region, location.country].filter(Boolean).join(", ")}
               <br />
-              {new Date(scan.created_at).toLocaleString("en-GB", {
-                timeZone: "Europe/London",
-              })}
+              <br />
+              <strong>{location.scans.length} scans</strong>
+              <br />
+              <br />
+
+              {location.scans.slice(0, 10).map((scan: any) => (
+                <div key={scan.id}>
+                  {scan.serial} —{" "}
+                  {new Date(scan.created_at).toLocaleString("en-GB", {
+                    timeZone: "Europe/London",
+                  })}
+                </div>
+              ))}
             </Popup>
           </Marker>
         ))}
